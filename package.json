@@ -1,6 +1,6 @@
 {
   "type": "module",
-  "name": "bitcoinfocusnow",
+  "name": "bitcoin-twitter-bot",
   "version": "1.0.0",
   "main": "index.mjs",
   "dependencies": {
