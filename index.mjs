@@ -64,20 +64,36 @@ const getPriceData = async () => {
     const message2 = `📈 24h change:\n${priceChange24h > 0 ? `+${priceChange24h}` : priceChange24h}% ${priceChange24h > 0 ? "↑" : "↓"}\n\n`;
     const message3 = `💵 Market cap:\n$${marketCap.toLocaleString("en-US")} (${
       marketCapChange24h > 0 ? `+${marketCapChange24h}` : marketCapChange24h
-    }% in the last 24 hours) \n\n`;
+    }% in the last 24 hours)\n${convertNumberToApproximateStringRepresentation(marketCap)}\n\n`;
     const message4 = `📊 24h volume:\n$${totalVolume.toLocaleString("en-US")} (${
       totalVolumeChange24h > 0 ? `+${totalVolumeChange24h}` : totalVolumeChange24h
-    }% in the last 24 hours)`;
+    }% in the last 24 hours)\n${convertNumberToApproximateStringRepresentation(totalVolume)}`;
 
     // Concatenates all the messages and returns the final message to be posted on Twitter
     const final_message = message1 + message2 + message3 + message4;
-
     return final_message;
   } catch (error) {
     // Catches any errors that may occur and logs the error to the console
     console.error(error);
   }
 };
+
+const convertNumberToApproximateStringRepresentation = (number) => {
+  const approximations = [
+    { name: 'Quadrillion', limit: 1_000_000_000_000_000 },
+    { name: 'Trillion', limit: 1_000_000_000_000 },
+    { name: 'Billion', limit: 1_000_000_000 },
+    { name: 'Million', limit: 1_000_000 },
+    { name: 'Thousand', limit: 1_000 }
+  ];
+  for (const { name, limit } of approximations) {
+    if (number >= limit) {
+      const quotient = Math.floor(number / limit);
+      return `${quotient} ${name}${quotient > 1 ? 's' : ''}`;
+    }
+  }
+  return "";
+}
 
 //Calls the postTweet() function to post the message on Twitter
 postTweet();
