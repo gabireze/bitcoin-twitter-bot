@@ -23,7 +23,10 @@ const twitterClient = new TwitterApi({
 async function postTweet() {
   try {
     // Get price data from CoinGecko API
-    const message = await getPriceData();
+    const priceData = await getPriceData();
+
+    // Get formatted message with relevant data
+    const message = await getMessage(priceData);
 
     // Post tweet using Twitter API
     const tweet = await twitterClient.v2.tweet({ text: message });
@@ -57,26 +60,35 @@ const getPriceData = async () => {
     const totalVolume = data.total_volumes.slice(-1)[0][1];
     const totalVolumeChange24h = (((totalVolume - data.total_volumes[0][1]) / data.total_volumes[0][1]) * 100).toFixed(2);
 
-    // Format message with relevant data
-    const message1 = `🚀 #Bitcoin is currently trading at:\n💰 $${currentPrice.toLocaleString("en-US")} (${
-      priceChange1h > 0 ? `+${priceChange1h}` : priceChange1h
-    }% in the last 1 hour)\n\n`;
-    const message2 = `📈 24h change:\n${priceChange24h > 0 ? `+${priceChange24h}` : priceChange24h}% ${priceChange24h > 0 ? "↑" : "↓"}\n\n`;
-    const message3 = `💵 Market cap:\n$${marketCap.toLocaleString("en-US")} (${
-      marketCapChange24h > 0 ? `+${marketCapChange24h}` : marketCapChange24h
-    }% in the last 24 hours) \n\n`;
-    const message4 = `📊 24h volume:\n$${totalVolume.toLocaleString("en-US")} (${
-      totalVolumeChange24h > 0 ? `+${totalVolumeChange24h}` : totalVolumeChange24h
-    }% in the last 24 hours)`;
-
-    // Concatenates all the messages and returns the final message to be posted on Twitter
-    const final_message = message1 + message2 + message3 + message4;
-
-    return final_message;
+    return { currentPrice, priceChange1h, priceChange24h, marketCap, marketCapChange24h, totalVolume, totalVolumeChange24h };
   } catch (error) {
     // Catches any errors that may occur and logs the error to the console
     console.error(error);
   }
+};
+
+// Format message with relevant data
+const getMessage = async (priceData) => {
+  const priceMessage = `🚀 #Bitcoin is currently trading at:\n💰 $${priceData.currentPrice.toLocaleString("en-US")} (${
+    priceData.priceChange1h > 0 ? `+${priceData.priceChange1h}` : priceData.priceChange1h
+  }% in the last 1 hour)\n\n`;
+
+  const priceChange24hMessage = `📈 24h change:\n${priceData.priceChange24h > 0 ? `+${priceData.priceChange24h}` : priceData.priceChange24h}% ${
+    priceData.priceChange24h > 0 ? "↑" : "↓"
+  }\n\n`;
+
+  const marketCapMessage = `💵 Market cap:\n$${priceData.marketCap.toLocaleString("en-US")} (${
+    priceData.marketCapChange24h > 0 ? `+${priceData.marketCapChange24h}` : priceData.marketCapChange24h
+  }% in the last 24 hours) \n\n`;
+
+  const totalVolumeChange24hMessage = `📊 24h volume:\n$${priceData.totalVolume.toLocaleString("en-US")} (${
+    priceData.totalVolumeChange24h > 0 ? `+${priceData.totalVolumeChange24h}` : priceData.totalVolumeChange24h
+  }% in the last 24 hours)`;
+
+  // Concatenates all the messages and returns the final message to be posted on Twitter
+  const message = priceMessage + priceChange24hMessage + marketCapMessage + totalVolumeChange24hMessage;
+
+  return message;
 };
 
 //Calls the postTweet() function to post the message on Twitter
