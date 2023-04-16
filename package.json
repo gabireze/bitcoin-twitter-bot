@@ -12,7 +12,15 @@
     "start": "node index.mjs",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
-  "license": "ISC",
-  "description": ""
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:gabireze/bitcoin-twitter-bot.git"
+  },
+  "author": {
+    "name": "Gabriel de Rezende Gonçalves",
+    "email": "gabireze@gmail.com",
+    "url": "https://gabireze.com.br/"
+  },
+  "license": "MIT",
+  "description": "This is a simple Node.js application that posts the latest Bitcoin price, market cap, and volume information on Twitter using the Twitter API v2."
 }
