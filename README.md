@@ -22,7 +22,7 @@ You also need to install Node.js and the following packages:
 1. Clone this repository to your local machine:
 
 ```
-git clone https://github.com/your-username/bitcoin-twitter-bot.git
+git clone https://github.com/gabireze/bitcoin-twitter-bot.git
 ```
 
 2. Install the required packages:
