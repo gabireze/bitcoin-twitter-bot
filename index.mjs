@@ -10,7 +10,6 @@ dotenv.config();
 const postFearGreedIndexTweet = async () => {
   const fearGreedIndexData = await fearGreedIndexHelper.getFearGreedIndex();
   const fearGreedIndexMessage = await fearGreedIndexHelper.getFearGreedIndexMessage(fearGreedIndexData);
-  await helpers.downloadImage(process.env.FEAR_GREED_INDEX_IMAGE_URL, process.env.FEAR_GREED_INDEX_IMAGE_PATH);
   await aws.uploadFileByURL(process.env.FEAR_GREED_INDEX_IMAGE_URL, process.env.FEAR_GREED_INDEX_IMAGE_KEY);
   const mediaIds = await twitterHelper.getMediaIds([process.env.FEAR_GREED_INDEX_IMAGE_PATH]);
   await twitterHelper.postTweet(fearGreedIndexMessage, mediaIds);
