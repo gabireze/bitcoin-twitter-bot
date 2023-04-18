@@ -3,6 +3,7 @@ import * as fearGreedIndexHelper from "./src/fearGreedIndex.mjs";
 import * as helpers from "./src/helpers.mjs";
 import * as dotenv from "dotenv";
 import * as twitterHelper from "./src/twitter.mjs";
+import * as aws from "./src/aws.mjs";
 
 dotenv.config();
 
@@ -10,9 +11,9 @@ const postFearGreedIndexTweet = async () => {
   const fearGreedIndexData = await fearGreedIndexHelper.getFearGreedIndex();
   const fearGreedIndexMessage = await fearGreedIndexHelper.getFearGreedIndexMessage(fearGreedIndexData);
   await helpers.downloadImage(process.env.FEAR_GREED_INDEX_IMAGE_URL, process.env.FEAR_GREED_INDEX_IMAGE_PATH);
+  await aws.uploadFileByURL(process.env.FEAR_GREED_INDEX_IMAGE_URL, process.env.FEAR_GREED_INDEX_IMAGE_KEY);
   const mediaIds = await twitterHelper.getMediaIds([process.env.FEAR_GREED_INDEX_IMAGE_PATH]);
   await twitterHelper.postTweet(fearGreedIndexMessage, mediaIds);
-  await helpers.deleteImage(process.env.FEAR_GREED_INDEX_IMAGE_PATH);
 };
 
 const postBitcoin1hPriceTweet = async () => {
