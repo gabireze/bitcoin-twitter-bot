@@ -14,9 +14,9 @@ export const getPriceData = async (coingeckoApiUrl, coinId, currency) => {
     const priceChange1h = (((currentPrice - data.prices[data.prices.length - 13][1]) / currentPrice) * 100).toFixed(2);
     const priceChange24h = (((currentPrice - data.prices[0][1]) / data.prices[0][1]) * 100).toFixed(2);
     const marketCap = data.market_caps.slice(-1)[0][1];
-    const marketCapChange24h = ((marketCap - data.market_caps[0][1]) / data.market_caps[0][1]) * 100;
+    const marketCapChange24h = (((marketCap - data.market_caps[0][1]) / data.market_caps[0][1]) * 100).toFixed(2);
     const totalVolume = data.total_volumes.slice(-1)[0][1];
-    const totalVolumeChange24h = ((totalVolume - data.total_volumes[0][1]) / data.total_volumes[0][1]) * 100;
+    const totalVolumeChange24h = (((totalVolume - data.total_volumes[0][1]) / data.total_volumes[0][1]) * 100).toFixed(2);
 
     return {
       currentPrice,
