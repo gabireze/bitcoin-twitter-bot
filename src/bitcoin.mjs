@@ -57,7 +57,7 @@ export const getBitcoin24hPriceMessage = async (priceData) => {
 export const getBitcoin1hPriceMessage = async (priceData) => {
   const message = `🚀 #Bitcoin is currently trading at:\n💰 ${priceData.currentPrice.toLocaleString("en-US", { style: "currency", currency: "USD" })} (${
     priceData.priceChange1h
-  }% in the last 1h)\n\n`;
+  }% in the last 1h)`;
 
   return message;
 };

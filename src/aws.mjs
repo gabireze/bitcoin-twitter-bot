@@ -19,14 +19,12 @@ export const uploadFile = async (path, key) => {
       client,
       params,
     });
-
     parallelUploads3.on("httpUploadProgress", (progress) => {
       console.log(progress);
     });
-
-    await parallelUploads3.done();
-  } catch (e) {
-    console.log(e);
+    return await parallelUploads3.done();
+  } catch (error) {
+    console.error(error);
   }
 };
 
@@ -46,14 +44,12 @@ export const uploadFileByURL = async (url, key) => {
       client,
       params,
     });
-
     parallelUploads3.on("httpUploadProgress", (progress) => {
       console.log(progress);
     });
-
-    await parallelUploads3.done();
-  } catch (e) {
-    console.log(e);
+    return await parallelUploads3.done();
+  } catch (error) {
+    console.error(error);
   }
 };
 
@@ -66,7 +62,7 @@ export const deleteFile = async (key) => {
   try {
     const response = await client.send(command);
     console.log(response);
-  } catch (err) {
-    console.error(err);
+  } catch (error) {
+    console.error(error);
   }
 };

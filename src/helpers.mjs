@@ -1,11 +1,16 @@
 import * as fs from "fs";
 
 export const downloadImage = async (url, path) => {
-  const response = await fetch(url);
-  const blob = await response.blob();
-  const arrayBuffer = await blob.arrayBuffer();
-  const buffer = Buffer.from(arrayBuffer);
-  await fs.promises.writeFile(path, buffer);
+  try {
+    const response = await fetch(url);
+    const blob = await response.blob();
+    const arrayBuffer = await blob.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+    await fs.promises.writeFile(path, buffer);
+    console.log("Image downloaded successfully: ", path);
+  } catch (error) {
+    console.log(error);
+  }
 };
 
 export const downloadImages = async (images) => {
@@ -16,9 +21,14 @@ export const downloadImages = async (images) => {
 };
 
 export const deleteImage = async (path) => {
-  fs.rmSync(path, {
-    force: true,
-  });
+  try {
+    fs.rmSync(path, {
+      force: true,
+    });
+    console.log("Image deleted successfully: ", path);
+  } catch (error) {
+    console.log(error);
+  }
 };
 
 export const deleteMultipleImages = async (paths) => {

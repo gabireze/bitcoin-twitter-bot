@@ -1,9 +1,13 @@
 import axios from "axios";
 
 export const getFearGreedIndex = async () => {
-  const response = await axios.get("https://api.alternative.me/fng/");
-  const data = response.data;
-  return data;
+  try {
+    const response = await axios.get("https://api.alternative.me/fng/");
+    const data = response.data;
+    return data;
+  } catch (error) {
+    console.error(error);
+  }
 };
 
 export const getFearGreedIndexMessage = async (fearGreedIndexData) => {
