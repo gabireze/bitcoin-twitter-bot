@@ -23,7 +23,21 @@ export async function postTweet(message, mediaIds) {
   }
 }
 
-export const getMediaIds = async (mediaPaths) => {
-  const mediaIds = await Promise.all(mediaPaths.map((mediaPath) => twitterClient.v1.uploadMedia(mediaPath)));
-  return mediaIds;
+export const getMediaIds = async (medias) => {
+  try {
+    const mediaIds = await Promise.all(
+      medias.map(async (media) => {
+        const response = await fetch(media.path);
+        const blob = await response.blob();
+        const arrayBuffer = await blob.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+        const mediaId = await twitterClient.v1.uploadMedia(buffer, { mimeType: media.mimeType });
+        console.log(`Successfully uploaded media: ${mediaId}`);
+        return mediaId;
+      })
+    );
+    return mediaIds;
+  } catch (error) {
+    console.error(error);
+  }
 };
