@@ -1,5 +1,6 @@
 import { TwitterApi } from "twitter-api-v2";
 import * as dotenv from "dotenv";
+import fs from "fs";
 
 dotenv.config();
 
@@ -27,10 +28,16 @@ export const getMediaIds = async (medias) => {
   try {
     const mediaIds = await Promise.all(
       medias.map(async (media) => {
-        const response = await fetch(media.path);
-        const blob = await response.blob();
-        const arrayBuffer = await blob.arrayBuffer();
-        const buffer = Buffer.from(arrayBuffer);
+        let buffer;
+
+        if (media.path.startsWith("http")) {
+          const response = await fetch(media.path);
+          const blob = await response.blob();
+          const arrayBuffer = await blob.arrayBuffer();
+          buffer = Buffer.from(arrayBuffer);
+        } else {
+          buffer = fs.readFileSync(media.path);
+        }
         const mediaId = await twitterClient.v1.uploadMedia(buffer, { mimeType: media.mimeType });
         console.log(`Successfully uploaded media: ${mediaId}`);
         return mediaId;
