@@ -1,6 +1,7 @@
 import { TwitterApi } from "twitter-api-v2";
 import * as dotenv from "dotenv";
 import fs from "fs";
+import axios from "axios";
 
 dotenv.config();
 
@@ -31,13 +32,12 @@ export const getMediaIds = async (medias) => {
         let buffer;
 
         if (media.path.startsWith("http")) {
-          const response = await fetch(media.path);
-          const blob = await response.blob();
-          const arrayBuffer = await blob.arrayBuffer();
-          buffer = Buffer.from(arrayBuffer);
+          const response = await axios.get(media.path, { responseType: "arraybuffer" });
+          buffer = Buffer.from(response.data, "binary");
         } else {
           buffer = fs.readFileSync(media.path);
         }
+
         const mediaId = await twitterClient.v1.uploadMedia(buffer, { mimeType: media.mimeType });
         console.log(`Successfully uploaded media: ${mediaId}`);
         return mediaId;

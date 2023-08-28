@@ -1,10 +1,20 @@
-import puppeteer from "puppeteer";
+import puppeteer from "puppeteer-core";
+import chromium from "@sparticuz/chromium";
 
-const MAX_RETRY_ATTEMPTS = 3; // Maximum number of retry attempts
-const RETRY_INTERVAL = 30000; // Interval between retry attempts in milliseconds
+const MAX_RETRY_ATTEMPTS = 3;
+const RETRY_INTERVAL = 30000;
+
+chromium.setHeadlessMode = true;
+chromium.setGraphicsMode = false;
 
 const getBitcoinMonthlyReturns = async (url, width, height) => {
-  const browser = await puppeteer.launch({ headless: "new" });
+  const browser = await puppeteer.launch({
+    args: chromium.args,
+    defaultViewport: chromium.defaultViewport,
+    executablePath: await chromium.executablePath(),
+    headless: chromium.headless,
+  });
+
   const page = await browser.newPage();
 
   await page.setViewport({ width, height });
@@ -18,7 +28,7 @@ const getBitcoinMonthlyReturns = async (url, width, height) => {
     try {
       await new Promise((resolve) => setTimeout(resolve, 5000));
       elementHandle = await page.waitForSelector(".MuiGrid-root.MuiGrid-direction-xs-row.MuiGrid-grid-xs-12.cg-style-ipi2ni", { timeout: RETRY_INTERVAL });
-      break; // Exit the loop if element is found
+      break;
     } catch (error) {
       retryAttempts++;
       console.log(`Element not found, retry attempt ${retryAttempts}`);
@@ -43,22 +53,22 @@ export const captureBitcoinMonthlyReturnsScreenshot = async () => {
     const height = 2000;
 
     const elementScreenshot = await getBitcoinMonthlyReturns(url, width, height);
-
-    const fs = await import("fs");
-    fs.writeFileSync("./bitcoinMonthlyReturns.png", elementScreenshot);
-
-    console.log("Screenshot captured and saved.");
+    console.log("Screenshot captured", elementScreenshot);
+    return elementScreenshot;
   } catch (error) {
     throw new Error(error);
   }
 };
 
 export const getBitcoinMonthlyReturnsMessage = async () => {
-  const now = new Date();
-  const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-  const currentMonth = monthNames[now.getMonth()];
-  const currentYear = now.getFullYear();
+  const previousMonth = new Date();
+  previousMonth.setMonth(previousMonth.getMonth() - 1);
 
-  const tweetMessage = `#Bitcoin Monthly Returns (%) for ${currentMonth} ${currentYear} by @coinglass_com`;
+  const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  const prevMonthName = monthNames[previousMonth.getMonth()];
+  const prevYear = previousMonth.getFullYear();
+
+  const tweetMessage = `#Bitcoin Monthly Returns (%) for ${prevMonthName} ${prevYear} by @coinglass_com`;
+
   return tweetMessage;
 };
