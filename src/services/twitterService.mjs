@@ -29,10 +29,16 @@ export const uploadMediaAndGetIds = async (medias) => {
     const mediaIds = await Promise.all(
       medias.map(async (media) => {
         const buffer = media.path.startsWith("http")
-          ? Buffer.from((await axios.get(media.path, { responseType: "arraybuffer" })).data, "binary")
+          ? Buffer.from(
+              (await axios.get(media.path, { responseType: "arraybuffer" }))
+                .data,
+              "binary"
+            )
           : fs.readFileSync(media.path);
 
-        const mediaId = await twitterClient.v1.uploadMedia(buffer, { mimeType: media.mimeType });
+        const mediaId = await twitterClient.v1.uploadMedia(buffer, {
+          mimeType: media.mimeType,
+        });
         console.log(`Successfully uploaded media: ${mediaId}`);
         return mediaId;
       })

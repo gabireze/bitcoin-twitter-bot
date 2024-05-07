@@ -9,7 +9,13 @@ const fetchBitcoinMonthlyReturnsScreenshot = async (url, width, height) => {
     headless: chromium.headless,
     ignoreHTTPSErrors: true,
     defaultViewport: chromium.defaultViewport,
-    args: [...chromium.args, "--hide-scrollbars", "--disable-web-security", "--disable-setuid-sandbox", "--no-sandbox"],
+    args: [
+      ...chromium.args,
+      "--hide-scrollbars",
+      "--disable-web-security",
+      "--disable-setuid-sandbox",
+      "--no-sandbox",
+    ],
   });
 
   try {
@@ -18,14 +24,20 @@ const fetchBitcoinMonthlyReturnsScreenshot = async (url, width, height) => {
     await page.goto(url);
 
     const elementSelector = ".highcharts-root";
-    const elementHandle = await page.waitForSelector(elementSelector, { timeout: 30000 });
+    const elementHandle = await page.waitForSelector(elementSelector, {
+      timeout: 30000,
+    });
 
     if (!elementHandle) {
-      throw new Error(`Could not find element that matches selector: ${elementSelector}.`);
+      throw new Error(
+        `Could not find element that matches selector: ${elementSelector}.`
+      );
     }
 
     await page.evaluate(() => {
-      const exportingGroup = document.querySelector(".highcharts-exporting-group");
+      const exportingGroup = document.querySelector(
+        ".highcharts-exporting-group"
+      );
       if (exportingGroup) {
         exportingGroup.remove();
       }
@@ -34,7 +46,11 @@ const fetchBitcoinMonthlyReturnsScreenshot = async (url, width, height) => {
     const elementScreenshot = await elementHandle.screenshot();
     return elementScreenshot;
   } catch (error) {
-    console.error("Error in fetchBitcoinMonthlyReturnsScreenshot:", error.message, error.stack);
+    console.error(
+      "Error in fetchBitcoinMonthlyReturnsScreenshot:",
+      error.message,
+      error.stack
+    );
     throw error;
   } finally {
     await browser.close();
@@ -47,7 +63,11 @@ export const getBitcoinReturnsScreenshot = async () => {
     const width = 1370;
     const height = 2000;
 
-    const elementScreenshot = await fetchBitcoinMonthlyReturnsScreenshot(url, width, height);
+    const elementScreenshot = await fetchBitcoinMonthlyReturnsScreenshot(
+      url,
+      width,
+      height
+    );
     console.log("Screenshot captured", elementScreenshot);
     return elementScreenshot;
   } catch (error) {
