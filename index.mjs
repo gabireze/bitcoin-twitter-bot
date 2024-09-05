@@ -7,6 +7,7 @@ import { createFearGreedIndexMessage } from "./src/messageBuilders/fearGreedInde
 import { createBitcoinMonthlyReturnsMessage } from "./src/messageBuilders/newhedgeMessageBuilders.mjs";
 import { getBitcoinReturnsScreenshot } from "./src/processors/newhedgeDataProcessor.mjs";
 import { fetchPriceData } from "./src/services/bitcoinDataService.mjs";
+import { postBlueSky } from "./src/services/blueskyService.mjs";
 import { getFearGreedIndex } from "./src/services/fearGreedIndexService.mjs";
 import { uploadFileByBuffer } from "./src/services/s3Service.mjs";
 import {
@@ -135,10 +136,123 @@ const tweetBitcoinMonthlyReturns = async () => {
   }
 };
 
+const postBlueSkyBitcoin1hPriceUpdate = async () => {
+  try {
+    const response = await fetchPriceData(
+      process.env.COIN_ID,
+      process.env.CURRENCY
+    );
+
+    if (!response) {
+      throw new Error("No data returned from the fetchPriceData function.");
+    }
+
+    const summaryMessage = createCurrentPriceAnd1hChangeSummary(response);
+    await postBlueSky(summaryMessage);
+
+    console.log("BlueSky post successfully created. Message:", summaryMessage);
+  } catch (error) {
+    console.error(
+      "Error occurred in postBlueSkyBitcoin1hPriceUpdate:",
+      error.message,
+      error.stack
+    );
+  }
+};
+
+const postBlueSkyBitcoin24hPriceUpdate = async () => {
+  try {
+    const priceData = await fetchPriceData(
+      process.env.COIN_ID,
+      process.env.CURRENCY
+    );
+
+    if (!priceData) {
+      throw new Error(
+        "Failed to fetch Bitcoin price data or received empty response."
+      );
+    }
+
+    const summaryMessage = create24hPriceUpdateSummary(priceData);
+    await postBlueSky(summaryMessage);
+
+    console.log("BlueSky post successfully created. Message:", summaryMessage);
+  } catch (error) {
+    console.error(
+      "Error in postBlueSkyBitcoin24hPriceUpdate:",
+      error.message,
+      error.stack
+    );
+  }
+};
+
+// TODO: Implement the postBlueSkyFearGreedIndexTweet
+// const postBlueSkyFearGreedIndexTweet = async () => {
+//   try {
+//     const fearGreedIndexData = await getFearGreedIndex();
+
+//     if (
+//       !fearGreedIndexData ||
+//       !fearGreedIndexData.data ||
+//       fearGreedIndexData.data.length === 0
+//     ) {
+//       throw new Error("Invalid or empty Fear & Greed Index data received.");
+//     }
+
+//     const fearGreedIndexMessage =
+//       createFearGreedIndexMessage(fearGreedIndexData);
+
+//     await postBlueSkyWithMedia(
+//       fearGreedIndexMessage,
+//       process.env.FEAR_GREED_INDEX_IMAGE_URL
+//     );
+
+//     console.log("Fear & Greed Index post on BlueSky successfully created.");
+//   } catch (error) {
+//     console.error(
+//       "Error in postBlueSkyFearGreedIndexTweet: ",
+//       error.message,
+//       error.stack
+//     );
+//   }
+// };
+
+// TODO: Implement the postBlueSkyFearGreedIndexTweet
+// const postBlueSkyBitcoinMonthlyReturns = async () => {
+//   try {
+//     const screenshotBuffer = await getBitcoinReturnsScreenshot();
+//     if (!screenshotBuffer) {
+//       throw new Error("Failed to capture Bitcoin Monthly Returns screenshot.");
+//     }
+
+//     const imageUrl = await uploadFileByBuffer(
+//       screenshotBuffer,
+//       process.env.BITCOIN_MONTHLY_RETURNS_IMAGE_PATH
+//     );
+
+//     await postBlueSkyWithMedia(
+//       await createBitcoinMonthlyReturnsMessage(),
+//       imageUrl
+//     );
+
+//     console.log(
+//       "Bitcoin Monthly Returns post on BlueSky successfully created."
+//     );
+//   } catch (error) {
+//     console.error("Error in postBlueSkyBitcoinMonthlyReturns:", error.message);
+//     console.log("Failed to post on BlueSky. Please try again later.");
+//   }
+// };
+
 await tweetBitcoin1hPriceUpdate();
 await tweetBitcoin24hPriceUpdate();
 await tweetFearGreedIndexTweet();
 await tweetBitcoinMonthlyReturns();
+
+await postBlueSkyBitcoin1hPriceUpdate();
+await postBlueSkyBitcoin24hPriceUpdate();
+// await postBlueSkyFearGreedIndexTweet(); // TODO: Implement the postBlueSkyFearGreedIndexTweet
+// await postBlueSkyBitcoinMonthlyReturns(); // TODO: Implement the postBlueSkyBitcoinMonthlyReturns
 
 /* This is a commented out function that exports the postTweet
 function for use in an AWS Lambda function. When uncommented,
@@ -158,5 +272,19 @@ regular schedule AWS environment. */
 //   }
 //   if (action === "tweetBitcoinMonthlyReturns") {
 //     return await tweetBitcoinMonthlyReturns();
+//   }
+//   if (action === "postBlueSkyBitcoin1hPriceUpdate") {
+//     return await postBlueSkyBitcoin1hPriceUpdate();
+//   }
+//   if (action === "postBlueSkyBitcoin24hPriceUpdate") {
+//     return await postBlueSkyBitcoin24hPriceUpdate();
+//   }
+//   // TODO: Implement the postBlueSkyFearGreedIndexTweet
+//   if (action === "postBlueSkyFearGreedIndexTweet") {
+//     return await postBlueSkyFearGreedIndexTweet();
+//   }
+//   // TODO: Implement the postBlueSkyBitcoinMonthly
+//   if (action === "postBlueSkyBitcoinMonthlyReturns") {
+//     return await postBlueSkyBitcoinMonthlyReturns();
 //   }
 // };

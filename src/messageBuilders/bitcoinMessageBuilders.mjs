@@ -29,7 +29,7 @@ export const createMarketCapSection = (data) => {
 export const createVolumeSection = (data) => {
   const totalVolume = getTotalVolume(data);
   const volumeChange24h = getTotalVolumeChange24h(data);
-  return `📊 Volume:\n${totalVolume} (24h Change: ${volumeChange24h})\n\n`;
+  return `📊 Volume:\n${totalVolume} (24h Change: ${volumeChange24h})`;
 };
 
 export const create24hPriceUpdateSummary = (data) => {

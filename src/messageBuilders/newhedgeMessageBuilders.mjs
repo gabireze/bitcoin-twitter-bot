@@ -19,7 +19,7 @@ export const createBitcoinMonthlyReturnsMessage = async () => {
   const prevMonthName = monthNames[currentMonth.getMonth()];
   const currentYear = currentMonth.getFullYear();
 
-  const tweetMessage = `#Bitcoin Monthly Returns Heatmap (%) from Aug 2010 - ${prevMonthName} ${currentYear} by @newhedge_io`;
+  const tweetMessage = `#Bitcoin Monthly Returns Heatmap (%) from Aug 2010 - ${prevMonthName} ${currentYear}`;
 
   return tweetMessage;
 };
