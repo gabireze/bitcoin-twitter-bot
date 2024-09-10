@@ -7,7 +7,10 @@ import { createFearGreedIndexMessage } from "./src/messageBuilders/fearGreedInde
 import { createBitcoinMonthlyReturnsMessage } from "./src/messageBuilders/newhedgeMessageBuilders.mjs";
 import { getBitcoinReturnsScreenshot } from "./src/processors/newhedgeDataProcessor.mjs";
 import { fetchPriceData } from "./src/services/bitcoinDataService.mjs";
-import { postBlueSky } from "./src/services/blueskyService.mjs";
+import {
+  postBlueSkyWithMedia,
+  postBlueSkyWithoutMedia,
+} from "./src/services/blueskyService.mjs";
 import { getFearGreedIndex } from "./src/services/fearGreedIndexService.mjs";
 import { uploadFileByBuffer } from "./src/services/s3Service.mjs";
 import {
@@ -148,7 +151,7 @@ const postBlueSkyBitcoin1hPriceUpdate = async () => {
     }
 
     const summaryMessage = createCurrentPriceAnd1hChangeSummary(response);
-    await postBlueSky(summaryMessage);
+    await postBlueSkyWithoutMedia(summaryMessage);
 
     console.log("BlueSky post successfully created. Message:", summaryMessage);
   } catch (error) {
@@ -174,7 +177,7 @@ const postBlueSkyBitcoin24hPriceUpdate = async () => {
     }
 
     const summaryMessage = create24hPriceUpdateSummary(priceData);
-    await postBlueSky(summaryMessage);
+    await postBlueSkyWithoutMedia(summaryMessage);
 
     console.log("BlueSky post successfully created. Message:", summaryMessage);
   } catch (error) {
@@ -186,63 +189,65 @@ const postBlueSkyBitcoin24hPriceUpdate = async () => {
   }
 };
 
-// TODO: Implement the postBlueSkyFearGreedIndexTweet
-// const postBlueSkyFearGreedIndexTweet = async () => {
-//   try {
-//     const fearGreedIndexData = await getFearGreedIndex();
+const postBlueSkyFearGreedIndexTweet = async () => {
+  try {
+    const fearGreedIndexData = await getFearGreedIndex();
+    const indexValue = fearGreedIndexData.data[0].value;
+    const classification = fearGreedIndexData.data[0].value_classification;
 
-//     if (
-//       !fearGreedIndexData ||
-//       !fearGreedIndexData.data ||
-//       fearGreedIndexData.data.length === 0
-//     ) {
-//       throw new Error("Invalid or empty Fear & Greed Index data received.");
-//     }
+    if (
+      !fearGreedIndexData ||
+      !fearGreedIndexData.data ||
+      fearGreedIndexData.data.length === 0
+    ) {
+      throw new Error("Invalid or empty Fear & Greed Index data received.");
+    }
 
-//     const fearGreedIndexMessage =
-//       createFearGreedIndexMessage(fearGreedIndexData);
+    const fearGreedIndexMessage =
+      createFearGreedIndexMessage(fearGreedIndexData);
 
-//     await postBlueSkyWithMedia(
-//       fearGreedIndexMessage,
-//       process.env.FEAR_GREED_INDEX_IMAGE_URL
-//     );
+    await postBlueSkyWithMedia(
+      fearGreedIndexMessage,
+      process.env.FEAR_GREED_INDEX_IMAGE_URL,
+      `Fear & Greed Index is ${indexValue} (${classification})`
+    );
 
-//     console.log("Fear & Greed Index post on BlueSky successfully created.");
-//   } catch (error) {
-//     console.error(
-//       "Error in postBlueSkyFearGreedIndexTweet: ",
-//       error.message,
-//       error.stack
-//     );
-//   }
-// };
+    console.log("Fear & Greed Index post on BlueSky successfully created.");
+  } catch (error) {
+    console.error(
+      "Error in postBlueSkyFearGreedIndexTweet: ",
+      error.message,
+      error.stack
+    );
+  }
+};
 
-// TODO: Implement the postBlueSkyFearGreedIndexTweet
-// const postBlueSkyBitcoinMonthlyReturns = async () => {
-//   try {
-//     const screenshotBuffer = await getBitcoinReturnsScreenshot();
-//     if (!screenshotBuffer) {
-//       throw new Error("Failed to capture Bitcoin Monthly Returns screenshot.");
-//     }
+const postBlueSkyBitcoinMonthlyReturns = async () => {
+  try {
+    const screenshotBuffer = await getBitcoinReturnsScreenshot();
+    if (!screenshotBuffer) {
+      throw new Error("Failed to capture Bitcoin Monthly Returns screenshot.");
+    }
 
-//     const imageUrl = await uploadFileByBuffer(
-//       screenshotBuffer,
-//       process.env.BITCOIN_MONTHLY_RETURNS_IMAGE_PATH
-//     );
+    const imageUrl = await uploadFileByBuffer(
+      screenshotBuffer,
+      process.env.BITCOIN_MONTHLY_RETURNS_IMAGE_PATH
+    );
 
-//     await postBlueSkyWithMedia(
-//       await createBitcoinMonthlyReturnsMessage(),
-//       imageUrl
-//     );
+    await postBlueSkyWithMedia(
+      await createBitcoinMonthlyReturnsMessage(),
+      imageUrl,
+      "Bitcoin Monthly Returns Heatmap"
+    );
 
-//     console.log(
-//       "Bitcoin Monthly Returns post on BlueSky successfully created."
-//     );
-//   } catch (error) {
-//     console.error("Error in postBlueSkyBitcoinMonthlyReturns:", error.message);
-//     console.log("Failed to post on BlueSky. Please try again later.");
-//   }
-// };
+    console.log(
+      "Bitcoin Monthly Returns post on BlueSky successfully created."
+    );
+  } catch (error) {
+    console.error("Error in postBlueSkyBitcoinMonthlyReturns:", error.message);
+    console.log("Failed to post on BlueSky. Please try again later.");
+  }
+};
 
 await tweetBitcoin1hPriceUpdate();
 await tweetBitcoin24hPriceUpdate();
@@ -251,8 +256,8 @@ await tweetBitcoinMonthlyReturns();
 
 await postBlueSkyBitcoin1hPriceUpdate();
 await postBlueSkyBitcoin24hPriceUpdate();
-// await postBlueSkyFearGreedIndexTweet(); // TODO: Implement the postBlueSkyFearGreedIndexTweet
-// await postBlueSkyBitcoinMonthlyReturns(); // TODO: Implement the postBlueSkyBitcoinMonthlyReturns
+await postBlueSkyFearGreedIndexTweet();
+await postBlueSkyBitcoinMonthlyReturns();
 
 /* This is a commented out function that exports the postTweet
 function for use in an AWS Lambda function. When uncommented,
@@ -279,11 +284,9 @@ regular schedule AWS environment. */
 //   if (action === "postBlueSkyBitcoin24hPriceUpdate") {
 //     return await postBlueSkyBitcoin24hPriceUpdate();
 //   }
-//   // TODO: Implement the postBlueSkyFearGreedIndexTweet
 //   if (action === "postBlueSkyFearGreedIndexTweet") {
 //     return await postBlueSkyFearGreedIndexTweet();
 //   }
-//   // TODO: Implement the postBlueSkyBitcoinMonthly
 //   if (action === "postBlueSkyBitcoinMonthlyReturns") {
 //     return await postBlueSkyBitcoinMonthlyReturns();
 //   }

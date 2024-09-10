@@ -1,152 +1,105 @@
+import { AtpAgent, RichText } from "@atproto/api";
 import axios from "axios";
 import dotenv from "dotenv";
+import fs from "fs";
 
 dotenv.config();
 
-const BASE_URL = "https://bsky.social/xrpc";
+const BLUESKY_BOT_USERNAME = process.env.BLUESKY_APP_USERNAME;
+const BLUESKY_BOT_PASSWORD = process.env.BLUESKY_APP_PASSWORD;
 
-export const authenticateBlueSky = async () => {
-  try {
-    const response = await axios.post(
-      `${BASE_URL}/com.atproto.server.createSession`,
-      {
-        identifier: process.env.BLUESKY_HANDLE,
-        password: process.env.BLUESKY_PASSWORD,
-      }
-    );
-    return response.data.accessJwt;
-  } catch (error) {
-    throw new Error(`Error authenticating with BlueSky: ${error.message}`);
-  }
+const authenticateBlueSky = async () => {
+  const agent = new AtpAgent({ service: "https://bsky.social/" });
+  await agent.login({
+    identifier: BLUESKY_BOT_USERNAME,
+    password: BLUESKY_BOT_PASSWORD,
+  });
+  return agent;
 };
 
-const createHashtagFacets = (message) => {
-  const hashtagRegex = /#\w+/g;
-  const matches = [...message.matchAll(hashtagRegex)];
-
-  return matches.map((match) => ({
-    index: {
-      byteStart: match.index,
-      byteEnd: match.index + match[0].length,
-    },
-    features: [
-      {
-        $type: "app.bsky.richtext.facet#tag",
-        tag: match[0].substring(1),
-      },
-    ],
-  }));
+const createRichTextWithHashtags = async (message) => {
+  const rt = new RichText({ text: message });
+  await rt.detectFacets();
+  return rt;
 };
 
-export const postBlueSky = async (message) => {
+export const postBlueSkyWithoutMedia = async (message) => {
   try {
-    const token = await authenticateBlueSky();
+    const agent = await authenticateBlueSky();
 
-    const facets = createHashtagFacets(message);
+    const rt = await createRichTextWithHashtags(message);
 
-    const postResponse = await axios.post(
-      `${BASE_URL}/com.atproto.repo.createRecord`,
-      {
-        collection: "app.bsky.feed.post",
-        repo: process.env.BLUESKY_HANDLE,
-        record: {
-          $type: "app.bsky.feed.post",
-          text: message,
-          facets,
-          createdAt: new Date().toISOString(),
-        },
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+    const postRecord = {
+      $type: "app.bsky.feed.post",
+      text: rt.text,
+      facets: rt.facets,
+      createdAt: new Date().toISOString(),
+    };
 
-    console.log("BlueSky post with hashtags successful:", postResponse.data);
-    return postResponse.data;
+    const postResponse = await agent.post(postRecord);
+    console.log("BlueSky post without media successful:", postResponse);
+    return postResponse;
   } catch (error) {
     throw new Error(`Error posting to BlueSky: ${error.message}`);
   }
 };
 
-// TODO: Implement the uploadBlueSkyMedia function
-// export const uploadBlueSkyMedia = async (imagePath) => {
-//   try {
-//     const token = await authenticateBlueSky();
-//     let imageBuffer;
+const uploadBlueSkyMedia = async (agent, imagePath) => {
+  try {
+    let imageBuffer;
+    if (imagePath.startsWith("http")) {
+      const response = await axios.get(imagePath, {
+        responseType: "arraybuffer",
+      });
+      imageBuffer = Buffer.from(response.data, "binary");
+    } else {
+      imageBuffer = fs.readFileSync(imagePath);
+    }
 
-//     if (imagePath.startsWith("http")) {
-//       const response = await axios.get(imagePath, {
-//         responseType: "arraybuffer",
-//       });
-//       imageBuffer = Buffer.from(response.data, "binary");
-//     } else {
-//       imageBuffer = fs.readFileSync(imagePath);
-//     }
+    const uploadedImage = await agent.uploadBlob(imageBuffer, {
+      encoding: "image/png",
+    });
 
-//     const form = new FormData();
-//     form.append("file", imageBuffer, { filename: "image.png" });
+    return uploadedImage.data.blob;
+  } catch (error) {
+    throw new Error(`Error uploading media to BlueSky: ${error.message}`);
+  }
+};
 
-//     const uploadResponse = await axios.post(
-//       `${BASE_URL}/com.atproto.repo.uploadBlob`,
-//       form,
-//       {
-//         headers: {
-//           Authorization: `Bearer ${token}`,
-//           ...form.getHeaders(),
-//         },
-//       }
-//     );
+export const postBlueSkyWithMedia = async (message, imagePath, altText) => {
+  try {
+    const agent = await authenticateBlueSky();
+    const imageBlob = await uploadBlueSkyMedia(agent, imagePath);
 
-//     return uploadResponse.data.blob;
-//   } catch (error) {
-//     throw new Error(`Error uploading media to BlueSky: ${error.message}`);
-//   }
-// };
+    const rt = await createRichTextWithHashtags(message);
 
-// TODO: Implement the postBlueSkyWithMedia function
-// export const postBlueSkyWithMedia = async (message, imagePath) => {
-//   try {
-//     const imageBlob = await uploadBlueSkyMedia(imagePath);
-//     const token = await authenticateBlueSky();
+    const postRecord = {
+      $type: "app.bsky.feed.post",
+      text: rt.text,
+      facets: rt.facets,
+      createdAt: new Date().toISOString(),
+      embed: {
+        $type: "app.bsky.embed.images",
+        images: [
+          {
+            image: {
+              $type: "blob",
+              ref: {
+                $link: imageBlob.ref.toString(),
+              },
+              mimeType: imageBlob.mimeType,
+              size: imageBlob.size,
+            },
+            alt: altText || "Image description",
+          },
+        ],
+      },
+    };
 
-//     const facets = createHashtagFacets(message);
-
-//     const postResponse = await axios.post(
-//       `${BASE_URL}/com.atproto.repo.createRecord`,
-//       {
-//         collection: "app.bsky.feed.post",
-//         repo: process.env.BLUESKY_HANDLE,
-//         record: {
-//           $type: "app.bsky.feed.post",
-//           text: message,
-//           facets,
-//           createdAt: new Date().toISOString(),
-//           embed: {
-//             $type: "app.bsky.embed.images",
-//             images: [
-//               {
-//                 image: imageBlob,
-//                 alt: "Image description",
-//               },
-//             ],
-//           },
-//         },
-//       },
-//       {
-//         headers: {
-//           Authorization: `Bearer ${token}`,
-//         },
-//       }
-//     );
-
-//     console.log(
-//       "BlueSky post with image and hashtags successful:",
-//       postResponse.data
-//     );
-//     return postResponse.data;
-//   } catch (error) {
-//     throw new Error(`Error posting to BlueSky with image: ${error.message}`);
-//   }
-// };
+    const postResponse = await agent.post(postRecord);
+    console.log("BlueSky post with media successful:", postResponse);
+    return postResponse;
+  } catch (error) {
+    throw new Error(`Error posting to BlueSky with media: ${error.message}`);
+  }
+};
