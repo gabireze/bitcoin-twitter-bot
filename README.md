@@ -2,6 +2,9 @@
 
 A Node.js application that posts the latest Bitcoin price, market cap, volume updates, and other financial data on both Twitter and BlueSky. It integrates with the [Twitter API v2](https://developer.twitter.com/en/docs/twitter-api) and the [Bluesky API](https://bsky.app). The application is deployed on AWS, using various AWS services to automate and manage tasks.
 
+## GitAds Sponsored
+[![Sponsored by GitAds](https://gitads.dev/v1/ad-serve?source=gabireze/bitcoin-twitter-bot@github)](https://gitads.dev/v1/ad-track?source=gabireze/bitcoin-twitter-bot@github)
+
 ## AWS Services Used
 
 - **AWS Lambda**: The core logic of the application runs as a serverless function in AWS Lambda, handling the process of fetching data, generating content, and posting to Twitter and BlueSky.
