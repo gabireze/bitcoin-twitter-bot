@@ -121,3 +121,5 @@ Stay up to date with the latest #Bitcoin news and price updates by following [@B
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE](https://opensource.org/license/mit/) file for more information.
+
+<!-- GitAds-Verify: FOIDMP7E98H76ZX3FE1E9JSUE7J8YRAZ -->
