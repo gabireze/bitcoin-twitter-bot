@@ -1,5 +1,6 @@
 import chromium from '@sparticuz/chromium';
 import puppeteer from 'puppeteer-core';
+import { logError, logScreenshotEvent } from '../utils/screenshotLogger.mjs';
 
 const fetchBitcoinMonthlyReturnsScreenshotCoinglass = async (url, width, height) => {
   chromium.setHeadlessMode = true;
@@ -43,14 +44,14 @@ const fetchBitcoinMonthlyReturnsScreenshotCoinglass = async (url, width, height)
       'Cache-Control': 'max-age=0',
     });
 
-    console.log('Navegando para Coinglass...');
+    logScreenshotEvent('navigation_start', { site: 'Coinglass' });
     await page.goto(url, { waitUntil: 'networkidle2', timeout: 120000 });
 
     // Aguardar o carregamento básico da página
     await new Promise(resolve => setTimeout(resolve, 5000));
 
     // Procurar pelo h2 com texto "Bitcoin Monthly returns(%)"
-    console.log('Procurando pelo título "Bitcoin Monthly returns(%)"...');
+    logScreenshotEvent('searching_title', { title: 'Bitcoin Monthly returns(%)' });
 
     // Usar JavaScript para encontrar o elemento pelo texto
     const titleElement = await page.evaluateHandle(() => {
@@ -63,13 +64,13 @@ const fetchBitcoinMonthlyReturnsScreenshotCoinglass = async (url, width, height)
     });
 
     if (!titleElement || titleElement.asElement() === null) {
-      console.log('Título não encontrado, capturando página inteira para debug...');
+      logScreenshotEvent('title_not_found', { action: 'capturing_full_page' });
       const screenshot = await page.screenshot({ fullPage: true });
       return screenshot;
     }
 
     // Navegar 3 divs acima do h2 conforme sugerido
-    console.log('Encontrando container 3 níveis acima...');
+    logScreenshotEvent('finding_container', { levels_up: 3 });
     const containerElement = await page.evaluateHandle(titleEl => {
       // Subir 3 níveis na hierarquia DOM
       let currentElement = titleEl;
@@ -86,15 +87,11 @@ const fetchBitcoinMonthlyReturnsScreenshotCoinglass = async (url, width, height)
     // Aguardar mais um pouco para garantir que tudo carregou
     await new Promise(resolve => setTimeout(resolve, 5000));
 
-    console.log('Capturando screenshot do container...');
+    logScreenshotEvent('capturing_screenshot', { target: 'container' });
     const screenshot = await containerElement.screenshot();
     return screenshot;
   } catch (error) {
-    console.error(
-      'Error in fetchBitcoinMonthlyReturnsScreenshotCoinglass:',
-      error.message,
-      error.stack
-    );
+    logError('Error in fetchBitcoinMonthlyReturnsScreenshotCoinglass', error);
     throw error;
   } finally {
     await browser.close();

@@ -2,6 +2,7 @@ import { AtpAgent, RichText } from "@atproto/api";
 import axios from "axios";
 import dotenv from "dotenv";
 import fs from "fs";
+import { logger } from '../utils/logger.mjs';
 
 dotenv.config();
 
@@ -37,7 +38,7 @@ export const postBlueSkyWithoutMedia = async (message) => {
     };
 
     const postResponse = await agent.post(postRecord);
-    console.log("BlueSky post without media successful:", postResponse);
+    logger.info("BlueSky post without media successful:", postResponse);
     return postResponse;
   } catch (error) {
     throw new Error(`Error posting to BlueSky: ${error.message}`);
@@ -97,7 +98,7 @@ export const postBlueSkyWithMedia = async (message, imagePath, altText) => {
     };
 
     const postResponse = await agent.post(postRecord);
-    console.log("BlueSky post with media successful:", postResponse);
+    logger.info("BlueSky post with media successful:", postResponse);
     return postResponse;
   } catch (error) {
     throw new Error(`Error posting to BlueSky with media: ${error.message}`);

@@ -1,4 +1,5 @@
 import * as fs from "fs";
+import { logger } from '../utils/logger.mjs';
 
 export const downloadImage = async (url, path) => {
   try {
@@ -7,9 +8,9 @@ export const downloadImage = async (url, path) => {
     const arrayBuffer = await blob.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
     await fs.promises.writeFile(path, buffer);
-    console.log("Image downloaded successfully: ", path);
+    logger.info("Image downloaded successfully: ", path);
   } catch (error) {
-    console.log(error);
+    logger.info(error);
   }
 };
 
@@ -25,9 +26,9 @@ export const deleteImage = async (path) => {
     fs.rmSync(path, {
       force: true,
     });
-    console.log("Image deleted successfully: ", path);
+    logger.info("Image deleted successfully: ", path);
   } catch (error) {
-    console.log(error);
+    logger.info(error);
   }
 };
 

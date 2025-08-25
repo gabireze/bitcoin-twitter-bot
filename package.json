@@ -11,7 +11,7 @@
     "@sparticuz/chromium": "^119.0.2",
     "axios": "^1.6.5",
     "dotenv": "^16.3.2",
-    "puppeteer-core": "^21.7.0",
+    "puppeteer-core": "^24.17.0",
     "twitter-api-v2": "^1.16.0"
   },
   "devDependencies": {
@@ -22,8 +22,8 @@
   },
   "scripts": {
     "start": "node index.mjs",
-    "test": "jest",
-    "test:watch": "jest --watch",
+    "test": "NODE_OPTIONS='--experimental-vm-modules' jest",
+    "test:watch": "NODE_OPTIONS='--experimental-vm-modules' jest --watch",
     "lint": "eslint \"src/**/*.mjs\"",
     "lint:fix": "eslint \"src/**/*.mjs\" --fix",
     "format": "prettier --write src/"

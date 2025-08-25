@@ -3,6 +3,7 @@ import { Upload } from '@aws-sdk/lib-storage';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import * as dotenv from 'dotenv';
 import fs from 'fs';
+import { logger } from '../utils/logger.mjs';
 
 dotenv.config();
 
@@ -42,7 +43,7 @@ export const uploadFile = async (path, key) => {
     });
 
     parallelUploads3.on('httpUploadProgress', progress => {
-      console.log(progress);
+      logger.info(progress);
     });
 
     await parallelUploads3.done();
@@ -50,7 +51,7 @@ export const uploadFile = async (path, key) => {
     return 'File uploaded successfully';
   } catch (error) {
     const errorMessage = 'Failed to upload file to AWS S3';
-    console.error(errorMessage, error);
+    logger.error(errorMessage, error);
     throw { message: errorMessage, error };
   }
 };
@@ -79,7 +80,7 @@ export const uploadFileByURL = async (url, key) => {
     });
 
     parallelUploads3.on('httpUploadProgress', progress => {
-      console.log(progress);
+      logger.info(progress);
     });
 
     await parallelUploads3.done();
@@ -105,7 +106,7 @@ export const uploadFileByBuffer = async (buffer, key) => {
     });
 
     parallelUploads3.on('httpUploadProgress', progress => {
-      console.log(progress);
+      logger.info(progress);
     });
 
     await parallelUploads3.done();
@@ -120,7 +121,7 @@ export const uploadFileByBuffer = async (buffer, key) => {
     });
     return signedUrl;
   } catch (error) {
-    console.error('Failed to upload file to AWS S3:', error);
+    logger.error('Failed to upload file to AWS S3:', error);
     const errorMessage = `Failed to upload file to AWS S3: ${error.message}`;
     throw new Error(errorMessage);
   }
@@ -136,7 +137,7 @@ export const deleteFile = async key => {
     const response = await client.send(command);
 
     if (response && response.$metadata.httpStatusCode === 204) {
-      console.log('File deleted successfully');
+      logger.info('File deleted successfully');
     } else {
       throw { message: 'Failed to delete the file', error: null };
     }
