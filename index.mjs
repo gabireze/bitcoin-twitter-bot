@@ -1,293 +1,129 @@
-import * as dotenv from "dotenv";
-import {
-  create24hPriceUpdateSummary,
-  createCurrentPriceAnd1hChangeSummary,
-} from "./src/messageBuilders/bitcoinMessageBuilders.mjs";
-import { createFearGreedIndexMessage } from "./src/messageBuilders/fearGreedIndexMessages.mjs";
-import { createBitcoinMonthlyReturnsMessage } from "./src/messageBuilders/newhedgeMessageBuilders.mjs";
-import { getBitcoinReturnsScreenshot } from "./src/processors/newhedgeDataProcessor.mjs";
-import { fetchPriceData } from "./src/services/bitcoinDataService.mjs";
-import {
-  postBlueSkyWithMedia,
-  postBlueSkyWithoutMedia,
-} from "./src/services/blueskyService.mjs";
-import { getFearGreedIndex } from "./src/services/fearGreedIndexService.mjs";
-import { uploadFileByBuffer } from "./src/services/s3Service.mjs";
-import {
-  postTweet,
-  uploadMediaAndGetIds,
-} from "./src/services/twitterService.mjs";
+import * as dotenv from 'dotenv';
+import { BotController } from './src/controllers/botController.mjs';
+import { logger } from './src/utils/logger.mjs';
+import { AppError } from './src/utils/errors.mjs';
 
 dotenv.config();
 
-const tweetBitcoin1hPriceUpdate = async () => {
+const main = async () => {
   try {
-    const response = await fetchPriceData(
-      process.env.COIN_ID,
-      process.env.CURRENCY
-    );
+    logger.info('Bitcoin Twitter & BlueSky Bot started');
 
-    if (!response) {
-      throw new Error("No data returned from the fetchPriceData function.");
+    const bot = new BotController();
+    const results = await bot.runAllTasks();
+
+    // Log summary
+    const successCount = Object.values(results.unified || {}).filter(r => r.success).length;
+    const totalTasks = Object.keys(results.unified || {}).length;
+
+    logger.info('Bot execution completed', {
+      successCount,
+      totalTasks,
+      errorCount: results.errors.length,
+      errors: results.errors,
+      note: 'Each task now posts to both Twitter and BlueSky simultaneously',
+    });
+
+    if (results.errors.length > 0) {
+      logger.warn(`${results.errors.length} tasks failed during execution`);
     }
 
-    const summaryMessage = createCurrentPriceAnd1hChangeSummary(response);
-    const tweetResponse = await postTweet(summaryMessage);
-
-    if (tweetResponse.error) {
-      console.error("Failed to post tweet:", tweetResponse.details);
-    } else {
-      console.log("Tweet successfully posted. Message:", summaryMessage);
-    }
+    return results;
   } catch (error) {
-    console.error(
-      "Error occurred in tweetBitcoin1hPriceUpdate:",
-      error.message,
-      error.stack
-    );
+    logger.error('Fatal error in main execution', error);
+    process.exit(1);
   }
 };
 
-const tweetBitcoin24hPriceUpdate = async () => {
+// AWS Lambda handler (compatível com seus crons existentes)
+export const handler = async (event, context) => {
   try {
-    const priceData = await fetchPriceData(
-      process.env.COIN_ID,
-      process.env.CURRENCY
-    );
+    logger.info('Lambda function invoked', { event, context: context.functionName });
 
-    if (!priceData) {
-      throw new Error(
-        "Failed to fetch Bitcoin price data or received empty response."
-      );
+    const bot = new BotController();
+    const action = event.action || event.detail?.action;
+
+    // Se não tem action específica, executa todas as tarefas
+    if (!action) {
+      logger.info('No specific action provided, running all tasks');
+      return await bot.runAllTasks();
     }
 
-    const summaryMessage = create24hPriceUpdateSummary(priceData);
-    const tweetResponse = await postTweet(summaryMessage);
+    // Mapeamento das ações - TODAS agora postam em ambas as plataformas simultaneamente
+    const actionMap = {
+      // ===== AÇÕES UNIFICADAS (UMA REQUEST, AMBAS AS PLATAFORMAS) =====
 
-    if (tweetResponse.error) {
-      console.error("Failed to post tweet:", tweetResponse.details);
-    } else {
-      console.log("Tweet successfully posted. Message:", summaryMessage);
+      // Fear & Greed Index (com imagem)
+      tweetFearGreedIndexTweet: () => bot.postFearGreedIndex(),
+      postBlueSkyFearGreedIndexTweet: () => bot.postFearGreedIndex(),
+      postFearGreedIndexToAll: () => bot.postFearGreedIndex(),
+
+      // Bitcoin Monthly Returns (com screenshot)
+      tweetBitcoinMonthlyReturns: () => bot.postMonthlyReturns(),
+      postBlueSkyBitcoinMonthlyReturns: () => bot.postMonthlyReturns(),
+      postBitcoinMonthlyReturnsToAll: () => bot.postMonthlyReturns(),
+
+      // Bitcoin 1h Price Update (texto simples)
+      tweetBitcoin1hPriceUpdate: () => bot.postHourlyPriceUpdate(),
+      postBlueSkyBitcoin1hPriceUpdate: () => bot.postHourlyPriceUpdate(),
+      postBitcoin1hPriceUpdateToAll: () => bot.postHourlyPriceUpdate(),
+
+      // Bitcoin 24h Price Update (texto simples)
+      tweetBitcoin24hPriceUpdate: () => bot.postDailyPriceUpdate(),
+      postBlueSkyBitcoin24hPriceUpdate: () => bot.postDailyPriceUpdate(),
+      postBitcoin24hPriceUpdateToAll: () => bot.postDailyPriceUpdate(),
+
+      // ===== AÇÕES COMBINADAS (OPCIONAIS) =====
+      allUnifiedTasks: async () => {
+        const results = {};
+        try {
+          results.bitcoin1h = await bot.postHourlyPriceUpdate();
+          results.bitcoin24h = await bot.postDailyPriceUpdate();
+          results.fearGreed = await bot.postFearGreedIndex();
+          results.monthlyReturns = await bot.postMonthlyReturns();
+        } catch (error) {
+          logger.error('Error in allUnifiedTasks', error);
+          throw error;
+        }
+        return results;
+      },
+    };
+
+    const selectedAction = actionMap[action];
+    if (!selectedAction) {
+      logger.error('Unknown action provided', { action, availableActions: Object.keys(actionMap) });
+      throw new AppError(`Unknown action: ${action}`, 400);
     }
+
+    logger.info('Executing specific action', { action });
+    const result = await selectedAction();
+
+    logger.info('Action completed successfully', { action });
+    return {
+      statusCode: 200,
+      body: JSON.stringify({
+        success: true,
+        action,
+        result,
+        timestamp: new Date().toISOString(),
+      }),
+    };
   } catch (error) {
-    console.error(
-      "Error in tweetBitcoin24hPriceUpdate:",
-      error.message,
-      error.stack
-    );
+    logger.error('Lambda handler error', error);
+
+    return {
+      statusCode: error.statusCode || 500,
+      body: JSON.stringify({
+        success: false,
+        error: error.message,
+        action: event.action,
+        timestamp: new Date().toISOString(),
+      }),
+    };
   }
 };
 
-const tweetFearGreedIndexTweet = async () => {
-  try {
-    const fearGreedIndexData = await getFearGreedIndex();
-
-    if (
-      !fearGreedIndexData ||
-      !fearGreedIndexData.data ||
-      fearGreedIndexData.data.length === 0
-    ) {
-      throw new Error("Invalid or empty Fear & Greed Index data received.");
-    }
-
-    const fearGreedIndexMessage =
-      createFearGreedIndexMessage(fearGreedIndexData);
-    const mediaIds = await uploadMediaAndGetIds([
-      { path: process.env.FEAR_GREED_INDEX_IMAGE_URL, mimeType: "image/png" },
-    ]);
-    await postTweet(fearGreedIndexMessage, mediaIds);
-
-    console.log("Fear & Greed Index tweet successfully posted.");
-  } catch (error) {
-    console.error(
-      "Error in postFearGreedIndexTweet: ",
-      error.message,
-      error.stack
-    );
-  }
-};
-
-const tweetBitcoinMonthlyReturns = async () => {
-  try {
-    const screenshotBuffer = await getBitcoinReturnsScreenshot();
-    if (!screenshotBuffer) {
-      throw new Error("Failed to capture Bitcoin Monthly Returns screenshot.");
-    }
-
-    const imageUrl = await uploadFileByBuffer(
-      screenshotBuffer,
-      process.env.BITCOIN_MONTHLY_RETURNS_IMAGE_PATH
-    );
-    if (!imageUrl) {
-      throw new Error("Failed to upload Bitcoin Monthly Returns screenshot.");
-    }
-
-    const mediaIds = await uploadMediaAndGetIds([
-      { path: imageUrl, mimeType: "image/png" },
-    ]);
-    if (!mediaIds || mediaIds.length === 0) {
-      throw new Error("Failed to get media ID for the uploaded image.");
-    }
-
-    const tweetMessage = await createBitcoinMonthlyReturnsMessage();
-
-    await postTweet(tweetMessage, mediaIds);
-    console.log("Bitcoin Monthly Returns tweet successfully posted.");
-  } catch (error) {
-    console.error("Error in tweetBitcoinMonthlyReturns:", error.message);
-    console.log("Failed to post the tweet. Please try again later.");
-  }
-};
-
-const postBlueSkyBitcoin1hPriceUpdate = async () => {
-  try {
-    const response = await fetchPriceData(
-      process.env.COIN_ID,
-      process.env.CURRENCY
-    );
-
-    if (!response) {
-      throw new Error("No data returned from the fetchPriceData function.");
-    }
-
-    const summaryMessage = createCurrentPriceAnd1hChangeSummary(response);
-    await postBlueSkyWithoutMedia(summaryMessage);
-
-    console.log("BlueSky post successfully created. Message:", summaryMessage);
-  } catch (error) {
-    console.error(
-      "Error occurred in postBlueSkyBitcoin1hPriceUpdate:",
-      error.message,
-      error.stack
-    );
-  }
-};
-
-const postBlueSkyBitcoin24hPriceUpdate = async () => {
-  try {
-    const priceData = await fetchPriceData(
-      process.env.COIN_ID,
-      process.env.CURRENCY
-    );
-
-    if (!priceData) {
-      throw new Error(
-        "Failed to fetch Bitcoin price data or received empty response."
-      );
-    }
-
-    const summaryMessage = create24hPriceUpdateSummary(priceData);
-    await postBlueSkyWithoutMedia(summaryMessage);
-
-    console.log("BlueSky post successfully created. Message:", summaryMessage);
-  } catch (error) {
-    console.error(
-      "Error in postBlueSkyBitcoin24hPriceUpdate:",
-      error.message,
-      error.stack
-    );
-  }
-};
-
-const postBlueSkyFearGreedIndexTweet = async () => {
-  try {
-    const fearGreedIndexData = await getFearGreedIndex();
-    const indexValue = fearGreedIndexData.data[0].value;
-    const classification = fearGreedIndexData.data[0].value_classification;
-
-    if (
-      !fearGreedIndexData ||
-      !fearGreedIndexData.data ||
-      fearGreedIndexData.data.length === 0
-    ) {
-      throw new Error("Invalid or empty Fear & Greed Index data received.");
-    }
-
-    const fearGreedIndexMessage =
-      createFearGreedIndexMessage(fearGreedIndexData);
-
-    await postBlueSkyWithMedia(
-      fearGreedIndexMessage,
-      process.env.FEAR_GREED_INDEX_IMAGE_URL,
-      `Fear & Greed Index is ${indexValue} (${classification})`
-    );
-
-    console.log("Fear & Greed Index post on BlueSky successfully created.");
-  } catch (error) {
-    console.error(
-      "Error in postBlueSkyFearGreedIndexTweet: ",
-      error.message,
-      error.stack
-    );
-  }
-};
-
-const postBlueSkyBitcoinMonthlyReturns = async () => {
-  try {
-    const screenshotBuffer = await getBitcoinReturnsScreenshot();
-    if (!screenshotBuffer) {
-      throw new Error("Failed to capture Bitcoin Monthly Returns screenshot.");
-    }
-
-    const imageUrl = await uploadFileByBuffer(
-      screenshotBuffer,
-      process.env.BITCOIN_MONTHLY_RETURNS_IMAGE_PATH
-    );
-
-    await postBlueSkyWithMedia(
-      await createBitcoinMonthlyReturnsMessage(),
-      imageUrl,
-      "Bitcoin Monthly Returns Heatmap"
-    );
-
-    console.log(
-      "Bitcoin Monthly Returns post on BlueSky successfully created."
-    );
-  } catch (error) {
-    console.error("Error in postBlueSkyBitcoinMonthlyReturns:", error.message);
-    console.log("Failed to post on BlueSky. Please try again later.");
-  }
-};
-
-await tweetBitcoin1hPriceUpdate();
-await tweetBitcoin24hPriceUpdate();
-await tweetFearGreedIndexTweet();
-await tweetBitcoinMonthlyReturns();
-
-await postBlueSkyBitcoin1hPriceUpdate();
-await postBlueSkyBitcoin24hPriceUpdate();
-await postBlueSkyFearGreedIndexTweet();
-await postBlueSkyBitcoinMonthlyReturns();
-
-/* This is a commented out function that exports the postTweet
-function for use in an AWS Lambda function. When uncommented,
-this function can be used to trigger the postTweet function on a
-regular schedule AWS environment. */
-
-// export const handler = async (event, context) => {
-//   const action = event["action"];
-//   if (action === "tweetBitcoin1hPriceUpdate") {
-//     return await tweetBitcoin1hPriceUpdate();
-//   }
-//   if (action === "tweetBitcoin24hPriceUpdate") {
-//     return await tweetBitcoin24hPriceUpdate();
-//   }
-//   if (action === "tweetFearGreedIndexTweet") {
-//     return await tweetFearGreedIndexTweet();
-//   }
-//   if (action === "tweetBitcoinMonthlyReturns") {
-//     return await tweetBitcoinMonthlyReturns();
-//   }
-//   if (action === "postBlueSkyBitcoin1hPriceUpdate") {
-//     return await postBlueSkyBitcoin1hPriceUpdate();
-//   }
-//   if (action === "postBlueSkyBitcoin24hPriceUpdate") {
-//     return await postBlueSkyBitcoin24hPriceUpdate();
-//   }
-//   if (action === "postBlueSkyFearGreedIndexTweet") {
-//     return await postBlueSkyFearGreedIndexTweet();
-//   }
-//   if (action === "postBlueSkyBitcoinMonthlyReturns") {
-//     return await postBlueSkyBitcoinMonthlyReturns();
-//   }
-// };
+// Execução direta (desenvolvimento local)
+if (process.argv[1] === new URL(import.meta.url).pathname) {
+  main();
+}

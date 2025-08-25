@@ -14,9 +14,19 @@
     "puppeteer-core": "^21.7.0",
     "twitter-api-v2": "^1.16.0"
   },
+  "devDependencies": {
+    "eslint": "^8.55.0",
+    "jest": "^29.7.0",
+    "prettier": "^3.1.0",
+    "puppeteer": "^24.17.0"
+  },
   "scripts": {
     "start": "node index.mjs",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "lint": "eslint \"src/**/*.mjs\"",
+    "lint:fix": "eslint \"src/**/*.mjs\" --fix",
+    "format": "prettier --write src/"
   },
   "repository": {
     "type": "git",

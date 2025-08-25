@@ -1,0 +1,14 @@
+{
+  "testEnvironment": "node",
+  "transform": {},
+  "testMatch": ["**/__tests__/**/*.test.mjs", "**/?(*.)+(spec|test).mjs"],
+  "collectCoverageFrom": ["src/**/*.{js,mjs}", "!src/**/*.test.{js,mjs}"],
+  "coverageThreshold": {
+    "global": {
+      "branches": 70,
+      "functions": 70,
+      "lines": 70,
+      "statements": 70
+    }
+  }
+}

@@ -1,20 +1,20 @@
-export const createBitcoinMonthlyReturnsMessage = async () => {
+export const createMonthlyReturnsMessage = async () => {
   const currentMonth = new Date();
   currentMonth.setMonth(currentMonth.getMonth() - 1);
 
   const monthNames = [
-    "Jan",
-    "Feb",
-    "Mar",
-    "Apr",
-    "May",
-    "Jun",
-    "Jul",
-    "Aug",
-    "Sep",
-    "Oct",
-    "Nov",
-    "Dec",
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
   ];
   const prevMonthName = monthNames[currentMonth.getMonth()];
   const currentYear = currentMonth.getFullYear();

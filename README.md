@@ -1,53 +1,215 @@
 # Bitcoin Twitter & BlueSky Bot
 
-A Node.js application that posts the latest Bitcoin price, market cap, volume updates, and other financial data on both Twitter and BlueSky. It integrates with the [Twitter API v2](https://developer.twitter.com/en/docs/twitter-api) and the [Bluesky API](https://bsky.app). The application is deployed on AWS, using various AWS services to automate and manage tasks.
+A robust Node.js application that automatically posts Bitcoin price updates, market cap, volume data, and Fear & Greed Index information on both Twitter and BlueSky. Built with modern JavaScript practices, comprehensive error handling, and designed for AWS Lambda deployment.
 
-## GitAds Sponsored
-[![Sponsored by GitAds](https://gitads.dev/v1/ad-serve?source=gabireze/bitcoin-twitter-bot@github)](https://gitads.dev/v1/ad-track?source=gabireze/bitcoin-twitter-bot@github)
+## ✨ Features
 
-## AWS Services Used
+- 🔄 **Automated Posting**: Schedules regular updates on both Twitter and BlueSky
+- 📊 **Multi-Data Sources**: Integrates with CoinGecko API and Fear & Greed Index
+- 📈 **Screenshot Generation**: Creates visual charts using Puppeteer and Chromium
+- ☁️ **AWS Integration**: S3 storage, Lambda functions, and EventBridge scheduling
+- 🛡️ **Error Handling**: Comprehensive error management with retry logic
+- 📝 **Structured Logging**: JSON-formatted logs for better monitoring
+- 🧪 **Testing**: Jest test suite with coverage reporting
+- 🏗️ **Modern Architecture**: Clean separation of concerns and modular design
 
-- **AWS Lambda**: The core logic of the application runs as a serverless function in AWS Lambda, handling the process of fetching data, generating content, and posting to Twitter and BlueSky.
-- **AWS S3**: Used to store and manage images, such as screenshots or charts that are posted along with updates.
-- **AWS EventBridge**: Schedules cron jobs to trigger the Lambda function at specific intervals, automating the posts without manual intervention.
+## 🔧 Architecture
 
-## Additional Tools
+```
+src/
+├── config/           # Configuration management
+├── controllers/      # Business logic controllers
+├── services/         # External API integrations
+├── processors/       # Data processing logic
+├── messageBuilders/  # Message formatting
+└── utils/           # Utilities and helpers
+```
 
-- **@sparticuz/chromium**: A headless version of Chromium optimized for Lambda, used to take screenshots and scrape information from websites. This is useful for gathering external data and generating visuals for the posts.
-- **Puppeteer**: Used in conjunction with Chromium to automate the process of interacting with websites and collecting data via scraping.
+## 🚀 Quick Start
 
-## Prerequisites
+### Prerequisites
 
-Before running the application, you need to set up accounts and credentials for both Twitter and BlueSky:
+- Node.js 20+
+- Twitter Developer Account
+- BlueSky Account
+- AWS Account (for deployment)
 
-### Twitter Setup
+### Installation
 
-1. Set up a Twitter developer account.
-2. Create a new Twitter app.
-3. Obtain the following credentials:
-   - **APP_KEY**: Your Twitter app's API key
-   - **APP_SECRET**: Your Twitter app's API secret key
-   - **ACCESS_TOKEN**: Your Twitter account's access token
-   - **ACCESS_SECRET**: Your Twitter account's access token secret
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/gabireze/bitcoin-twitter-bot.git
+   cd bitcoin-twitter-bot
+   ```
 
-### BlueSky Setup
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
 
-1. Create a BlueSky account.
-2. Obtain your BlueSky handle and password.
-   - **BLUESKY_APP_USERNAME**: Your BlueSky handle
-   - **BLUESKY_APP_PASSWORD**: Your BlueSky password
+3. **Set up environment variables**
+   ```bash
+   cp .env.exemple .env
+   # Edit .env with your credentials
+   ```
 
-You will also need Node.js installed, along with the following packages:
+4. **Run the application**
+   ```bash
+   npm start
+   ```
 
-## Dependencies
+## 🏗️ Development
 
-The following packages are required to run the application:
+### Available Scripts
 
-- **@atproto/api**: Used to interact with the BlueSky API for posting updates.
-- **@aws-sdk/client-s3**: AWS SDK for uploading and managing files in Amazon S3.
-- **@aws-sdk/lib-storage**: Provides utility methods for managing storage in AWS, used for handling uploads to S3.
-- **@aws-sdk/s3-request-presigner**: Helps generate presigned URLs for securely uploading to Amazon S3.
-- **@sparticuz/chromium**: A version of Chromium optimized for use in AWS Lambda environments, used for generating screenshots or headless browsing tasks.
+```bash
+npm start          # Run the application
+npm test           # Run tests
+npm test:watch     # Run tests in watch mode
+npm run lint       # Lint code
+npm run lint:fix   # Fix linting issues
+npm run format     # Format code with Prettier
+```
+
+### Testing
+
+```bash
+npm test           # Run all tests
+npm run test:watch # Run tests in watch mode
+```
+
+## 📦 Deployment
+
+### AWS Lambda
+
+The application is designed for AWS Lambda deployment:
+
+```bash
+# Create deployment package
+zip -r bitcoin-bot.zip . -x "tests/*" "node_modules/.cache/*"
+```
+
+### Docker
+
+```bash
+# Build image
+docker build -t bitcoin-twitter-bot .
+
+# Run container
+docker run --env-file .env bitcoin-twitter-bot
+```
+
+## 🔒 Security Considerations
+
+- **Never commit `.env` files** - Use environment variables or AWS Secrets Manager
+- **Rotate API keys regularly**
+- **Use IAM roles with minimal permissions**
+- **Enable CloudWatch logging** for monitoring
+
+## 📊 Monitoring
+
+The application includes structured logging:
+
+```json
+{
+  "timestamp": "2024-01-01T00:00:00.000Z",
+  "level": "INFO",
+  "message": "Tweet posted successfully",
+  "tweetId": "1234567890"
+}
+```
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+### Code Style
+
+This project uses:
+- **ESLint** for linting
+- **Prettier** for code formatting
+- **Jest** for testing
+
+## 🐛 Error Handling
+
+The application includes comprehensive error handling:
+
+- **API Errors**: Retry logic with exponential backoff
+- **Validation Errors**: Input validation for all data
+- **Configuration Errors**: Environment variable validation
+- **Graceful Degradation**: Continues operation if individual tasks fail
+
+## 📋 API Integrations
+
+### CoinGecko API
+- Fetches Bitcoin price, market cap, and volume data
+- Handles rate limiting and API errors
+- Validates data structure
+
+### Twitter API v2
+- Posts tweets with media support
+- Retry logic for failed posts
+- Media upload handling
+
+### BlueSky API
+- Rich text formatting
+- Image uploads with alt text
+- Proper error handling
+
+## 🔧 Configuration
+
+### Environment Variables
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `COIN_ID` | Yes | CoinGecko coin identifier |
+| `CURRENCY` | Yes | Base currency for prices |
+| `APP_KEY` | Yes | Twitter API key |
+| `BLUESKY_APP_USERNAME` | Yes | BlueSky handle |
+| `AWS_REGION` | Yes | AWS region |
+| `LOG_LEVEL` | No | Logging level (DEBUG, INFO, WARN, ERROR) |
+
+See `.env.exemple` for complete configuration options.
+
+## 📈 Performance
+
+- **Retry Logic**: Exponential backoff for failed requests
+- **Timeout Handling**: 10-second timeout for API requests
+- **Memory Optimization**: Efficient buffer handling for images
+- **Concurrent Operations**: Parallel processing where possible
+
+## 🆕 Recent Improvements
+
+- ✅ Refactored monolithic `index.mjs` into modular architecture
+- ✅ Added comprehensive error handling and custom error classes
+- ✅ Implemented structured logging with JSON format
+- ✅ Added retry logic with exponential backoff
+- ✅ Enhanced data validation and error recovery
+- ✅ Added test suite with Jest
+- ✅ Configured ESLint and Prettier for code quality
+- ✅ Added Docker support for containerized deployment
+- ✅ Improved environment variable validation
+- ✅ Enhanced security practices and documentation
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- [CoinGecko](https://coingecko.com) for cryptocurrency data
+- [Twitter API](https://developer.twitter.com) for social media integration
+- [BlueSky](https://bsky.app) for decentralized social networking
+
+---
+
+**Follow us for Bitcoin updates:**
+- Twitter: [@BitcoinFocusNow](https://twitter.com/BitcoinFocusNow)
+- BlueSky: [@bitcoinprice.bsky.social](https://bsky.app/profile/bitcoinprice.bsky.social)
 - **axios**: Promise-based HTTP client used for making API requests (e.g., to CoinGecko for price data).
 - **dotenv**: Loads environment variables from a `.env` file to manage sensitive information.
 - **puppeteer-core**: A headless browser tool for generating screenshots or automating web interactions.

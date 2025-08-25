@@ -1,29 +1,33 @@
-import {
-  DeleteObjectCommand,
-  GetObjectCommand,
-  S3Client,
-} from "@aws-sdk/client-s3";
-import { Upload } from "@aws-sdk/lib-storage";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import * as dotenv from "dotenv";
-import fs from "fs";
+import { DeleteObjectCommand, GetObjectCommand, S3Client } from '@aws-sdk/client-s3';
+import { Upload } from '@aws-sdk/lib-storage';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import * as dotenv from 'dotenv';
+import fs from 'fs';
 
 dotenv.config();
 
-const client = new S3Client({
-  region: process.env.AWS_REGION,
-  credentials: {
+// Configurar cliente S3
+// No Lambda, usar IAM Role. Localmente, usar credenciais customizadas
+const s3Config = {
+  region: process.env.AWS_REGION || 'sa-east-1',
+};
+
+// Se não estiver no Lambda, usar credenciais customizadas
+if (!process.env.AWS_EXECUTION_ENV) {
+  s3Config.credentials = {
     accessKeyId: process.env.MY_CUSTOM_ACCESS_KEY_ID,
     secretAccessKey: process.env.MY_CUSTOM_SECRET_ACCESS_KEY,
-  },
-});
+  };
+}
+
+const client = new S3Client(s3Config);
 
 export const uploadFile = async (path, key) => {
   try {
     const fileContent = fs.readFileSync(path);
 
     if (!fileContent) {
-      throw { message: "Failed to read file content", error: null };
+      throw { message: 'Failed to read file content', error: null };
     }
 
     const params = {
@@ -37,15 +41,15 @@ export const uploadFile = async (path, key) => {
       params,
     });
 
-    parallelUploads3.on("httpUploadProgress", (progress) => {
+    parallelUploads3.on('httpUploadProgress', progress => {
       console.log(progress);
     });
 
     await parallelUploads3.done();
 
-    return "File uploaded successfully";
+    return 'File uploaded successfully';
   } catch (error) {
-    const errorMessage = "Failed to upload file to AWS S3";
+    const errorMessage = 'Failed to upload file to AWS S3';
     console.error(errorMessage, error);
     throw { message: errorMessage, error };
   }
@@ -74,15 +78,15 @@ export const uploadFileByURL = async (url, key) => {
       params,
     });
 
-    parallelUploads3.on("httpUploadProgress", (progress) => {
+    parallelUploads3.on('httpUploadProgress', progress => {
       console.log(progress);
     });
 
     await parallelUploads3.done();
 
-    return "File uploaded successfully";
+    return 'File uploaded successfully';
   } catch (error) {
-    const errorMessage = "Failed to upload file to AWS S3";
+    const errorMessage = 'Failed to upload file to AWS S3';
     throw { message: errorMessage, error };
   }
 };
@@ -100,7 +104,7 @@ export const uploadFileByBuffer = async (buffer, key) => {
       params,
     });
 
-    parallelUploads3.on("httpUploadProgress", (progress) => {
+    parallelUploads3.on('httpUploadProgress', progress => {
       console.log(progress);
     });
 
@@ -116,12 +120,13 @@ export const uploadFileByBuffer = async (buffer, key) => {
     });
     return signedUrl;
   } catch (error) {
-    const errorMessage = "Failed to upload file to AWS S3";
-    throw new Error({ message: errorMessage, error });
+    console.error('Failed to upload file to AWS S3:', error);
+    const errorMessage = `Failed to upload file to AWS S3: ${error.message}`;
+    throw new Error(errorMessage);
   }
 };
 
-export const deleteFile = async (key) => {
+export const deleteFile = async key => {
   try {
     const command = new DeleteObjectCommand({
       Bucket: process.env.AWS_S3_BUCKET,
@@ -131,12 +136,12 @@ export const deleteFile = async (key) => {
     const response = await client.send(command);
 
     if (response && response.$metadata.httpStatusCode === 204) {
-      console.log("File deleted successfully");
+      console.log('File deleted successfully');
     } else {
-      throw { message: "Failed to delete the file", error: null };
+      throw { message: 'Failed to delete the file', error: null };
     }
   } catch (error) {
-    const errorMessage = "Failed to delete file from AWS S3";
+    const errorMessage = 'Failed to delete file from AWS S3';
     throw { message: errorMessage, error };
   }
 };
