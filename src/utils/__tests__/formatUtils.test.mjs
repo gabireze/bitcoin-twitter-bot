@@ -23,7 +23,9 @@ describe('formatUtils', () => {
     });
 
     it('should throw error when previous value is zero', () => {
-      expect(() => calculatePercentageChange(100, 0)).toThrow('Cannot calculate percentage change: previous value is zero');
+      expect(() => calculatePercentageChange(100, 0)).toThrow(
+        'Cannot calculate percentage change: previous value is zero'
+      );
     });
   });
 

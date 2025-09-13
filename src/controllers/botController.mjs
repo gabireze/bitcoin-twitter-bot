@@ -44,7 +44,7 @@ export class BotController {
 
       const summaryMessage = createHourlyPriceUpdate(response);
 
-      // Post to both platforms simultaneously
+      // Post to both platforms simultaneously with graceful error handling
       const [twitterResponse, blueSkyResponse] = await Promise.allSettled([
         postTweet(summaryMessage),
         postBlueSkyWithoutMedia(summaryMessage),
@@ -54,18 +54,34 @@ export class BotController {
         twitter: {
           success: twitterResponse.status === 'fulfilled',
           data: twitterResponse.status === 'fulfilled' ? twitterResponse.value : null,
-          error: twitterResponse.status === 'rejected' ? twitterResponse.reason : null,
+          error:
+            twitterResponse.status === 'rejected'
+              ? twitterResponse.reason?.message || twitterResponse.reason
+              : null,
+          isRateLimit:
+            twitterResponse.status === 'rejected' &&
+            (twitterResponse.reason?.message?.includes('429') ||
+              twitterResponse.reason?.message?.includes('circuit breaker')),
         },
         bluesky: {
           success: blueSkyResponse.status === 'fulfilled',
           data: blueSkyResponse.status === 'fulfilled' ? blueSkyResponse.value : null,
-          error: blueSkyResponse.status === 'rejected' ? blueSkyResponse.reason : null,
+          error:
+            blueSkyResponse.status === 'rejected'
+              ? blueSkyResponse.reason?.message || blueSkyResponse.reason
+              : null,
         },
       };
 
-      logger.info('Bitcoin 1h price update posted to both platforms', {
+      // Enhanced logging with better context
+      logger.info(summaryMessage, {
         twitter: results.twitter.success ? 'SUCCESS' : 'FAILED',
         bluesky: results.bluesky.success ? 'SUCCESS' : 'FAILED',
+        twitterError: results.twitter.isRateLimit
+          ? 'RATE_LIMITED'
+          : results.twitter.error
+            ? 'ERROR'
+            : null,
         message: summaryMessage,
       });
 

@@ -4,23 +4,23 @@ import { ValidationError } from '../../utils/errors.mjs';
 describe('priceDataProcessor', () => {
   const mockPriceData = {
     prices: [
-      [1640995200000, 46000.00], // Start price
-      [1640995500000, 46100.00],
-      [1640995800000, 46200.00],
-      [1640996100000, 46300.00],
-      [1640996400000, 46400.00],
-      [1640996700000, 46500.00],
-      [1640997000000, 46600.00],
-      [1640997300000, 46700.00],
-      [1640997600000, 46800.00],
-      [1640997900000, 46900.00],
-      [1640998200000, 47000.00],
-      [1640998500000, 47100.00],
-      [1640998800000, 47200.00], // 1h ago (index 12)
-      [1640999100000, 47300.00], // Current (index 13)
+      [1640995200000, 46000.0], // Start price
+      [1640995500000, 46100.0],
+      [1640995800000, 46200.0],
+      [1640996100000, 46300.0],
+      [1640996400000, 46400.0],
+      [1640996700000, 46500.0],
+      [1640997000000, 46600.0],
+      [1640997300000, 46700.0],
+      [1640997600000, 46800.0],
+      [1640997900000, 46900.0],
+      [1640998200000, 47000.0],
+      [1640998500000, 47100.0],
+      [1640998800000, 47200.0], // 1h ago (index 12)
+      [1640999100000, 47300.0], // Current (index 13)
     ],
     market_caps: [[1640999100000, 890000000000]],
-    total_volumes: [[1640999100000, 25000000000]]
+    total_volumes: [[1640999100000, 25000000000]],
   };
 
   describe('getCurrentPrice', () => {
@@ -46,7 +46,7 @@ describe('priceDataProcessor', () => {
     it('should throw ValidationError for insufficient data', () => {
       const insufficientData = {
         ...mockPriceData,
-        prices: mockPriceData.prices.slice(0, 5) // Less than 12 intervals
+        prices: mockPriceData.prices.slice(0, 5), // Less than 12 intervals
       };
       expect(() => getPriceChange1h(insufficientData)).toThrow(ValidationError);
     });

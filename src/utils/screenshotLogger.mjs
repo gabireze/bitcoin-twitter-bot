@@ -17,7 +17,7 @@ export const logProgress = (step, total, message) => {
     step,
     total,
     message,
-    progress: `${step}/${total}`
+    progress: `${step}/${total}`,
   });
 };
 
@@ -25,6 +25,6 @@ export const logScreenshotEvent = (event, details = {}) => {
   logger.info('Screenshot event', {
     event,
     ...details,
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   });
 };

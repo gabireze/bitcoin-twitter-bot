@@ -18,7 +18,7 @@ describe('bitcoinDataService', () => {
       const mockData = {
         prices: [[1640995200000, 47000.12]],
         market_caps: [[1640995200000, 890000000000]],
-        total_volumes: [[1640995200000, 25000000000]]
+        total_volumes: [[1640995200000, 25000000000]],
       };
 
       mockedAxios.get.mockResolvedValue({ data: mockData });
@@ -30,7 +30,7 @@ describe('bitcoinDataService', () => {
         'https://api.coingecko.com/api/v3/coins/bitcoin/market_chart',
         {
           params: { vs_currency: 'usd', days: 1, precision: 2 },
-          timeout: 10000
+          timeout: 10000,
         }
       );
     });
