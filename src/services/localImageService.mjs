@@ -4,7 +4,7 @@ import { logger } from '../utils/logger.mjs';
 
 // Diretório público para servir imagens
 const PUBLIC_DIR = './public/images';
-const BASE_URL = process.env.BASE_URL || 'https://nekomoji.chat/bitcoin-images';
+const BASE_URL = process.env.BASE_URL || 'https://gabireze.cloud/api/bitcoin';
 
 // Garantir que o diretório existe
 const ensureDirectoryExists = async () => {

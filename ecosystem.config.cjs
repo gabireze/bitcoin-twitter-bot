@@ -10,12 +10,12 @@ module.exports = {
       env: {
         NODE_ENV: 'production',
         PORT: 3001,
-        HOST: 'localhost', // Apenas localhost para segurança
+        HOST: '0.0.0.0', // Todas as interfaces para compatibilidade com nginx
       },
       env_production: {
         NODE_ENV: 'production',
         PORT: 3001,
-        HOST: 'localhost', // Apenas localhost para segurança
+        HOST: '0.0.0.0', // Todas as interfaces para compatibilidade com nginx
       },
 
       // Logs organizados
