@@ -29,8 +29,9 @@ log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 
 # Verificar se está rodando como root
 if [[ $EUID -eq 0 ]]; then
-   log_error "Este script não deve ser executado como root!"
-   exit 1
+   log_warning "Executando como root. Recomendamos usar um usuário normal por segurança."
+   log_warning "Continuando mesmo assim em 5 segundos... (Ctrl+C para cancelar)"
+   sleep 5
 fi
 
 # 1. Atualizar sistema
@@ -71,7 +72,43 @@ fi
 
 # 5. Instalar dependências do Puppeteer
 log_info "Instalando dependências do Puppeteer..."
-sudo apt install -y gconf-service libasound2 libatk1.0-0 libc6 libcairo2 libcups2 libdbus-1-3 libexpat1 libfontconfig1 libgcc1 libgconf-2-4 libgdk-pixbuf2.0-0 libglib2.0-0 libgtk-3-0 libnspr4 libpango-1.0-0 libpangocairo-1.0-0 libstdc++6 libx11-6 libx11-xcb1 libxcb1 libxcomposite1 libxcursor1 libxdamage1 libxext6 libxfixes3 libxi6 libxrandr2 libxrender1 libxss1 libxtst6 ca-certificates fonts-liberation libappindicator1 libnss3 lsb-release xdg-utils wget
+sudo apt install -y \
+  libasound2t64 \
+  libatk1.0-0t64 \
+  libc6 \
+  libcairo2 \
+  libcups2t64 \
+  libdbus-1-3 \
+  libexpat1 \
+  libfontconfig1 \
+  libgcc-s1 \
+  libgdk-pixbuf2.0-0 \
+  libglib2.0-0t64 \
+  libgtk-3-0t64 \
+  libnspr4 \
+  libpango-1.0-0 \
+  libpangocairo-1.0-0 \
+  libstdc++6 \
+  libx11-6 \
+  libx11-xcb1 \
+  libxcb1 \
+  libxcomposite1 \
+  libxcursor1 \
+  libxdamage1 \
+  libxext6 \
+  libxfixes3 \
+  libxi6 \
+  libxrandr2 \
+  libxrender1 \
+  libxss1 \
+  libxtst6 \
+  ca-certificates \
+  fonts-liberation \
+  libappindicator3-1 \
+  libnss3 \
+  lsb-release \
+  xdg-utils \
+  wget
 log_success "Dependências do Puppeteer instaladas!"
 
 # 6. Instalar Git se necessário
@@ -85,8 +122,8 @@ fi
 log_info "Criando diretórios necessários..."
 # Criar logs no diretório atual do projeto
 mkdir -p ./logs
-sudo mkdir -p /var/log/bitcoin-twitter-bot
-sudo chown $USER:$USER /var/log/bitcoin-twitter-bot
+sudo mkdir -p /var/log/bitcoin-bot
+sudo chown $USER:$USER /var/log/bitcoin-bot
 log_success "Diretórios criados!"
 
 # 8. Verificar se estamos no diretório correto da aplicação
@@ -152,7 +189,7 @@ npm run pm2:start
 
 echo "✅ Bot iniciado com sucesso!"
 echo "Use 'pm2 status' para verificar o status"
-echo "Use 'pm2 logs bitcoin-twitter-bot' para ver os logs"
+echo "Use 'pm2 logs bitcoin-bot' para ver os logs"
 EOF
 
 chmod +x start_bot.sh
@@ -161,7 +198,7 @@ chmod +x start_bot.sh
 cat > stop_bot.sh << 'EOF'
 #!/bin/bash
 echo "🛑 Parando Bitcoin Bot..."
-pm2 stop bitcoin-twitter-bot
+pm2 stop bitcoin-bot
 echo "✅ Bot parado!"
 EOF
 
@@ -172,13 +209,13 @@ cat > status_bot.sh << 'EOF'
 #!/bin/bash
 echo "📊 Status do Bitcoin Bot:"
 echo "========================"
-pm2 status bitcoin-twitter-bot
+pm2 status bitcoin-bot
 echo ""
 echo "🏥 Health Check:"
 curl -s http://localhost:3001/health | jq . 2>/dev/null || curl -s http://localhost:3001/health
 echo ""
 echo "📝 Últimos logs:"
-pm2 logs bitcoin-twitter-bot --lines 5 --nostream
+pm2 logs bitcoin-bot --lines 5 --nostream
 EOF
 
 chmod +x status_bot.sh
@@ -196,8 +233,8 @@ echo "4. Para parar: ./stop_bot.sh"
 echo ""
 log_info "Comandos úteis:"
 echo "• pm2 status - Ver status dos processos"
-echo "• pm2 logs bitcoin-twitter-bot - Ver logs em tempo real"
-echo "• pm2 restart bitcoin-twitter-bot - Reiniciar o bot"
+echo "• pm2 logs bitcoin-bot - Ver logs em tempo real"
+echo "• pm2 restart bitcoin-bot - Reiniciar o bot"
 echo "• curl http://localhost:3001/health - Health check"
 echo ""
 log_warning "⚠️  IMPORTANTE: Configure o arquivo .env antes de iniciar o bot!"

@@ -9,10 +9,10 @@ import { logger } from '../utils/logger.mjs';
 dotenv.config();
 
 export const twitterClient = new TwitterApi({
-  appKey: process.env.APP_KEY,
-  appSecret: process.env.APP_SECRET,
-  accessToken: process.env.ACCESS_TOKEN,
-  accessSecret: process.env.ACCESS_SECRET,
+  appKey: process.env.TWITTER_API_KEY,
+  appSecret: process.env.TWITTER_API_SECRET,
+  accessToken: process.env.TWITTER_ACCESS_TOKEN,
+  accessSecret: process.env.TWITTER_ACCESS_TOKEN_SECRET,
 });
 
 // VARIÁVEIS E FUNÇÕES AUXILIARES COMENTADAS TEMPORARIAMENTE (não usadas com Twitter desabilitado)
@@ -157,13 +157,13 @@ export const postTweet = async (message, mediaIds) => {
     messageLength: message.length,
     hasMedia: !!mediaIds,
   });
-  
+
   // Retorna um objeto simulado para manter compatibilidade
   return {
     id: 'disabled_' + Date.now(),
-    text: message
+    text: message,
   };
-  
+
   /* CÓDIGO ORIGINAL COMENTADO:
   try {
     // Check circuit breaker and apply rate limiting
@@ -216,10 +216,10 @@ export const uploadMediaAndGetIds = async medias => {
   logger.info('Twitter media upload is DISABLED - uploadMediaAndGetIds function commented out', {
     count: medias.length,
   });
-  
+
   // Retorna IDs simulados para manter compatibilidade
   return medias.map((_, index) => `disabled_media_${Date.now()}_${index}`);
-  
+
   /* CÓDIGO ORIGINAL COMENTADO:
   try {
     // Check circuit breaker before attempting media upload

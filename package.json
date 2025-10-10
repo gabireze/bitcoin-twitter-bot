@@ -25,7 +25,7 @@
     "start": "node index.mjs",
     "server": "node server.mjs",
     "dev": "nodemon server.mjs",
-    "pm2:start": "pm2 start ecosystem.config.js",
+    "pm2:start": "pm2 start ecosystem.config.cjs",
     "pm2:stop": "pm2 stop bitcoin-bot",
     "pm2:restart": "pm2 restart bitcoin-bot",
     "pm2:logs": "pm2 logs bitcoin-bot",

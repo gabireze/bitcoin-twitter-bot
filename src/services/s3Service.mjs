@@ -16,8 +16,8 @@ const s3Config = {
 // Se não estiver no Lambda, usar credenciais customizadas
 if (!process.env.AWS_EXECUTION_ENV) {
   s3Config.credentials = {
-    accessKeyId: process.env.MY_CUSTOM_ACCESS_KEY_ID,
-    secretAccessKey: process.env.MY_CUSTOM_SECRET_ACCESS_KEY,
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
   };
 }
 
