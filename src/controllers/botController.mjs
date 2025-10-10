@@ -1,7 +1,7 @@
 import { fetchPriceData } from '../services/bitcoinDataService.mjs';
 import { getFearGreedIndex } from '../services/fearGreedIndexService.mjs';
 import { captureMonthlyReturnsChart } from '../processors/screenshotProcessor.mjs';
-import { uploadFileByBuffer } from '../services/s3Service.mjs';
+import { saveImageLocally, downloadAndSaveImage } from '../services/localImageService.mjs';
 // IMPORTS DO TWITTER COMENTADOS TEMPORARIAMENTE
 // import { postTweet, uploadMediaAndGetIds } from '../services/twitterService.mjs';
 import { postBlueSkyWithMedia, postBlueSkyWithoutMedia } from '../services/blueskyService.mjs';
@@ -157,13 +157,19 @@ export class BotController {
       const indexValue = fearGreedIndexData.data[0].value;
       const classification = fearGreedIndexData.data[0].value_classification;
 
-      // 3. Postar simultaneamente nas duas plataformas
+      // 3. Baixar e salvar Fear & Greed Index image localmente
+      const localImageUrl = await downloadAndSaveImage(
+        config.images.fearGreedIndexUrl,
+        'fearGreedIndex.png'
+      );
+
+      // 4. Postar simultaneamente nas duas plataformas
       const [twitterResponse, blueSkyResponse] = await Promise.allSettled([
         // TWITTER DESABILITADO TEMPORARIAMENTE
         /*
         (async () => {
           const mediaIds = await uploadMediaAndGetIds([
-            { path: config.images.fearGreedIndexUrl, mimeType: 'image/png' },
+            { path: localImageUrl, mimeType: 'image/png' },
           ]);
           return postTweet(fearGreedIndexMessage, mediaIds);
         })(),
@@ -171,7 +177,7 @@ export class BotController {
         Promise.resolve({ id: 'disabled_' + Date.now(), text: fearGreedIndexMessage }),
         postBlueSkyWithMedia(
           fearGreedIndexMessage,
-          config.images.fearGreedIndexUrl,
+          localImageUrl,
           `Fear & Greed Index is ${indexValue} (${classification})`
         ),
       ]);
@@ -212,13 +218,13 @@ export class BotController {
         throw new ValidationError('Failed to capture Bitcoin Monthly Returns screenshot');
       }
 
-      // 2. Upload para S3 UMA vez só
-      const imageUrl = await uploadFileByBuffer(
+      // 2. Salvar imagem localmente UMA vez só
+      const imageUrl = await saveImageLocally(
         screenshotBuffer,
         config.images.bitcoinMonthlyReturnsPath
       );
       if (!imageUrl) {
-        throw new ValidationError('Failed to upload Bitcoin Monthly Returns screenshot');
+        throw new ValidationError('Failed to save Bitcoin Monthly Returns screenshot');
       }
 
       // 3. Criar mensagem UMA vez só

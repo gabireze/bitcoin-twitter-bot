@@ -14,6 +14,9 @@ const HOST = process.env.HOST || 'localhost'; // Apenas localhost por padrão
 // Middleware
 app.use(express.json());
 
+// Servir arquivos estáticos (imagens)
+app.use('/images', express.static('./public/images'));
+
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.json({
