@@ -8,10 +8,11 @@
     "@aws-sdk/client-s3": "^3.496.0",
     "@aws-sdk/lib-storage": "^3.496.0",
     "@aws-sdk/s3-request-presigner": "^3.496.0",
-    "@sparticuz/chromium": "^119.0.2",
     "axios": "^1.6.5",
     "dotenv": "^16.3.2",
-    "puppeteer-core": "^24.17.0",
+    "express": "^4.18.2",
+    "node-cron": "^3.0.3",
+    "puppeteer": "^24.17.0",
     "twitter-api-v2": "^1.16.0"
   },
   "devDependencies": {
@@ -22,6 +23,13 @@
   },
   "scripts": {
     "start": "node index.mjs",
+    "server": "node server.mjs",
+    "dev": "nodemon server.mjs",
+    "pm2:start": "pm2 start ecosystem.config.js",
+    "pm2:stop": "pm2 stop bitcoin-bot",
+    "pm2:restart": "pm2 restart bitcoin-bot",
+    "pm2:logs": "pm2 logs bitcoin-bot",
+    "pm2:status": "pm2 status",
     "test": "NODE_OPTIONS='--experimental-vm-modules' jest",
     "test:watch": "NODE_OPTIONS='--experimental-vm-modules' jest --watch",
     "lint": "eslint \"src/**/*.mjs\"",

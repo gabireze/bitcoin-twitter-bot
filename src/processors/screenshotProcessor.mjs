@@ -1,21 +1,22 @@
-import chromium from '@sparticuz/chromium';
-import puppeteer from 'puppeteer-core';
+import puppeteer from 'puppeteer';
 import { logError, logScreenshotEvent } from '../utils/screenshotLogger.mjs';
 
 const fetchBitcoinMonthlyReturnsScreenshotCoinglass = async (url, width, height) => {
-  chromium.setHeadlessMode = true;
-
   const browser = await puppeteer.launch({
-    executablePath: await chromium.executablePath(),
-    headless: chromium.headless,
+    headless: 'new',
     ignoreHTTPSErrors: true,
-    defaultViewport: chromium.defaultViewport,
+    defaultViewport: { width: 1920, height: 1080 },
     args: [
-      ...chromium.args,
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-dev-shm-usage',
+      '--disable-accelerated-2d-canvas',
+      '--no-first-run',
+      '--no-zygote',
+      '--single-process',
+      '--disable-gpu',
       '--hide-scrollbars',
       '--disable-web-security',
-      '--disable-setuid-sandbox',
-      '--no-sandbox',
     ],
   });
 
@@ -99,19 +100,21 @@ const fetchBitcoinMonthlyReturnsScreenshotCoinglass = async (url, width, height)
 };
 
 const fetchBitcoinMonthlyReturnsScreenshot = async (url, width, height) => {
-  chromium.setHeadlessMode = true;
-
   const browser = await puppeteer.launch({
-    executablePath: await chromium.executablePath(),
-    headless: chromium.headless,
+    headless: 'new',
     ignoreHTTPSErrors: true,
-    defaultViewport: chromium.defaultViewport,
+    defaultViewport: { width: 1920, height: 1080 },
     args: [
-      ...chromium.args,
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-dev-shm-usage',
+      '--disable-accelerated-2d-canvas',
+      '--no-first-run',
+      '--no-zygote',
+      '--single-process',
+      '--disable-gpu',
       '--hide-scrollbars',
       '--disable-web-security',
-      '--disable-setuid-sandbox',
-      '--no-sandbox',
     ],
   });
 
