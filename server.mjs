@@ -9,7 +9,7 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const HOST = process.env.HOST || '127.0.0.1'; // IPv4 localhost para compatibilidade com nginx
+const HOST = process.env.HOST || '0.0.0.0'; // Escutar em todas as interfaces para compatibilidade com nginx
 
 // Middleware
 app.use(express.json());
@@ -256,12 +256,12 @@ process.on('SIGINT', () => {
   });
 });
 
-// Start server - IPv4 localhost para compatibilidade com nginx
+// Start server - Escutar em todas as interfaces para compatibilidade com nginx
 const server = app.listen(PORT, HOST, () => {
-  logger.info(`Bitcoin Bot Server started on ${HOST}:${PORT} (IPv4 localhost)`);
-  logger.info(`Health check: http://${HOST}:${PORT}/health`);
-  logger.info(`Available actions: http://${HOST}:${PORT}/actions`);
-  logger.info('🔒 Server is only accessible from localhost for security');
+  logger.info(`Bitcoin Bot Server started on ${HOST}:${PORT} (all interfaces)`);
+  logger.info(`Health check: http://localhost:${PORT}/health`);
+  logger.info(`Available actions: http://localhost:${PORT}/actions`);
+  logger.info('🔒 Server accessible via nginx proxy (firewalled externally)');
 
   // Setup cron jobs after server starts
   setupCronJobs();
