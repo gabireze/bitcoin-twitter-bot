@@ -9,7 +9,7 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const HOST = process.env.HOST || 'localhost'; // Apenas localhost por padrão
+const HOST = process.env.HOST || '127.0.0.1'; // IPv4 localhost para compatibilidade com nginx
 
 // Middleware
 app.use(express.json());
@@ -256,9 +256,9 @@ process.on('SIGINT', () => {
   });
 });
 
-// Start server - APENAS localhost para segurança
+// Start server - IPv4 localhost para compatibilidade com nginx
 const server = app.listen(PORT, HOST, () => {
-  logger.info(`Bitcoin Bot Server started on ${HOST}:${PORT} (localhost only)`);
+  logger.info(`Bitcoin Bot Server started on ${HOST}:${PORT} (IPv4 localhost)`);
   logger.info(`Health check: http://${HOST}:${PORT}/health`);
   logger.info(`Available actions: http://${HOST}:${PORT}/actions`);
   logger.info('🔒 Server is only accessible from localhost for security');

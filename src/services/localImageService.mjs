@@ -25,27 +25,27 @@ const ensureDirectoryExists = async () => {
 export const saveImageLocally = async (buffer, filename) => {
   try {
     await ensureDirectoryExists();
-    
+
     // Adicionar timestamp para evitar cache de imagens antigas
     const timestamp = Date.now();
     const fileExtension = path.extname(filename);
     const baseName = path.basename(filename, fileExtension);
     const finalFilename = `${baseName}_${timestamp}${fileExtension}`;
-    
+
     const filePath = path.join(PUBLIC_DIR, finalFilename);
-    
+
     // Salvar arquivo
     await fs.writeFile(filePath, buffer);
-    
+
     // Retornar URL pública
     const publicUrl = `${BASE_URL}/${finalFilename}`;
-    
+
     logger.info('Image saved locally', {
       filename: finalFilename,
       size: buffer.length,
-      url: publicUrl
+      url: publicUrl,
     });
-    
+
     return publicUrl;
   } catch (error) {
     logger.error('Failed to save image locally', error);
@@ -65,7 +65,7 @@ export const downloadAndSaveImage = async (imageUrl, filename) => {
     if (!response.ok) {
       throw new Error(`Failed to download image: ${response.statusText}`);
     }
-    
+
     const buffer = Buffer.from(await response.arrayBuffer());
     return await saveImageLocally(buffer, filename);
   } catch (error) {
@@ -80,12 +80,12 @@ export const downloadAndSaveImage = async (imageUrl, filename) => {
 export const cleanupOldImages = async () => {
   try {
     await ensureDirectoryExists();
-    
+
     const files = await fs.readdir(PUBLIC_DIR);
-    
+
     // Agrupar por tipo de arquivo (bitcoinMonthlyReturns, fearGreedIndex, etc)
     const fileGroups = {};
-    
+
     for (const file of files) {
       const baseName = file.split('_')[0]; // Remove timestamp
       if (!fileGroups[baseName]) {
@@ -93,7 +93,7 @@ export const cleanupOldImages = async () => {
       }
       fileGroups[baseName].push(file);
     }
-    
+
     // Manter apenas os 10 mais recentes de cada tipo
     for (const [, files] of Object.entries(fileGroups)) {
       if (files.length > 10) {
@@ -103,7 +103,7 @@ export const cleanupOldImages = async () => {
           const timestampB = parseInt(b.split('_').pop().split('.')[0]);
           return timestampB - timestampA;
         });
-        
+
         // Deletar arquivos antigos
         const filesToDelete = files.slice(10);
         for (const file of filesToDelete) {
