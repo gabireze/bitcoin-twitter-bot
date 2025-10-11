@@ -35,10 +35,13 @@ const main = async () => {
   }
 };
 
-// AWS Lambda handler (compatível com seus crons existentes)
+// Application handler (compatível com diferentes ambientes)
 export const handler = async (event, context) => {
   try {
-    logger.info('Lambda function invoked', { event, context: context.functionName });
+    logger.info('Application handler invoked', {
+      event,
+      context: context?.functionName || 'standalone',
+    });
 
     const bot = new BotController();
     const action = event.action || event.detail?.action;
@@ -109,7 +112,7 @@ export const handler = async (event, context) => {
       }),
     };
   } catch (error) {
-    logger.error('Lambda handler error', error);
+    logger.error('Handler error', error);
 
     return {
       statusCode: error.statusCode || 500,

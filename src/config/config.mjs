@@ -13,8 +13,6 @@ const requiredEnvVars = [
   'TWITTER_ACCESS_TOKEN_SECRET',
   'BLUESKY_USERNAME',
   'BLUESKY_PASSWORD',
-  'AWS_REGION',
-  'AWS_S3_BUCKET',
 ];
 
 export const validateEnvironment = () => {
@@ -43,12 +41,7 @@ export const config = {
     username: process.env.BLUESKY_USERNAME,
     password: process.env.BLUESKY_PASSWORD,
   },
-  aws: {
-    region: process.env.AWS_REGION,
-    s3Bucket: process.env.AWS_S3_BUCKET,
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  },
+
   images: {
     fearGreedIndexUrl: process.env.FEAR_GREED_INDEX_IMAGE_URL,
     fearGreedIndexPath: process.env.FEAR_GREED_INDEX_IMAGE_PATH,

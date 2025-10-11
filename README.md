@@ -1,16 +1,14 @@
 # Bitcoin Twitter & BlueSky Bot
 
-A robust Node.js application that automatically posts Bitcoin price updates, market cap, volume data, and Fear & Greed Index information on both Twitter and BlueSky. Built with modern JavaScript practices, comprehensive error handling, and designed for AWS Lambda deployment.
+A robust Node.js application that automatically posts Bitcoin price updates, market cap, volume data, and Fear & Greed Index information on both Twitter and BlueSky. Built with modern JavaScript practices, comprehensive error handling, and designed for flexible deployment.
 
 ## ✨ Features
 
 - 🔄 **Automated Posting**: Schedules regular updates on both Twitter and BlueSky
 - 📊 **Multi-Data Sources**: Integrates with CoinGecko API and Fear & Greed Index
 - 📈 **Screenshot Generation**: Creates visual charts using Puppeteer and Chromium
-- ☁️ **AWS Integration**: S3 storage, Lambda functions, and EventBridge scheduling
 - 🛡️ **Error Handling**: Comprehensive error management with retry logic
 - 📝 **Structured Logging**: JSON-formatted logs for better monitoring
-- 🧪 **Testing**: Jest test suite with coverage reporting
 - 🏗️ **Modern Architecture**: Clean separation of concerns and modular design
 
 ## 🔧 Architecture
@@ -32,7 +30,6 @@ src/
 - Node.js 20+
 - Twitter Developer Account
 - BlueSky Account
-- AWS Account (for deployment)
 
 ### Installation
 
@@ -64,29 +61,25 @@ src/
 
 ```bash
 npm start          # Run the application
-npm test           # Run tests
-npm test:watch     # Run tests in watch mode
 npm run lint       # Lint code
 npm run lint:fix   # Fix linting issues
 npm run format     # Format code with Prettier
 ```
 
-### Testing
+## 🚀 Deployment
+
+### Local/Server Deployment
 
 ```bash
-npm test           # Run all tests
-npm run test:watch # Run tests in watch mode
-```
+# Install dependencies
+npm install
 
-## 📦 Deployment
+# Set up environment variables
+cp .env.exemple .env
+# Edit .env with your credentials
 
-### AWS Lambda
-
-The application is designed for AWS Lambda deployment:
-
-```bash
-# Create deployment package
-zip -r bitcoin-bot.zip . -x "tests/*" "node_modules/.cache/*"
+# Run the application
+npm start
 ```
 
 ### Docker
@@ -101,10 +94,10 @@ docker run --env-file .env bitcoin-twitter-bot
 
 ## 🔒 Security Considerations
 
-- **Never commit `.env` files** - Use environment variables or AWS Secrets Manager
+- **Never commit `.env` files** - Use environment variables or secure configuration management
 - **Rotate API keys regularly**
-- **Use IAM roles with minimal permissions**
-- **Enable CloudWatch logging** for monitoring
+- **Use minimal permissions for service accounts**
+- **Enable structured logging** for monitoring
 
 ## 📊 Monitoring
 
@@ -132,7 +125,6 @@ The application includes structured logging:
 This project uses:
 - **ESLint** for linting
 - **Prettier** for code formatting
-- **Jest** for testing
 
 ## 🐛 Error Handling
 
@@ -170,7 +162,6 @@ The application includes comprehensive error handling:
 | `CURRENCY` | Yes | Base currency for prices |
 | `APP_KEY` | Yes | Twitter API key |
 | `BLUESKY_APP_USERNAME` | Yes | BlueSky handle |
-| `AWS_REGION` | Yes | AWS region |
 | `LOG_LEVEL` | No | Logging level (DEBUG, INFO, WARN, ERROR) |
 
 See `.env.exemple` for complete configuration options.
@@ -189,7 +180,6 @@ See `.env.exemple` for complete configuration options.
 - ✅ Implemented structured logging with JSON format
 - ✅ Added retry logic with exponential backoff
 - ✅ Enhanced data validation and error recovery
-- ✅ Added test suite with Jest
 - ✅ Configured ESLint and Prettier for code quality
 - ✅ Added Docker support for containerized deployment
 - ✅ Improved environment variable validation
@@ -245,21 +235,12 @@ ACCESS_SECRET=your-access-token-secret
 BLUESKY_APP_USERNAME=your_bluesky_handle
 BLUESKY_APP_PASSWORD=your_bluesky_password
 
-MY_CUSTOM_ACCESS_KEY_ID=
-MY_CUSTOM_SECRET_ACCESS_KEY=
-AWS_REGION=
-AWS_S3_BUCKET=
-AWS_EXECUTION_ENV=AWS_Lambda_nodejs
-HEADLESS=true
-
 COINGECKO_API_URL=https://api.coingecko.com/api/v3
 CURRENCY=usd
 COIN_ID=bitcoin
 FEAR_GREED_INDEX_IMAGE_URL=https://alternative.me/crypto/fear-and-greed-index.png
 FEAR_GREED_INDEX_IMAGE_PATH=./fearAndGreedIndex.png
-FEAR_GREED_INDEX_IMAGE_KEY=fearAndGreedIndex.png
 BITCOIN_MONTHLY_RETURNS_IMAGE_PATH=bitcoinMonthlyReturns.png
-BITCOIN_MONTHLY_RETURNS_IMAGE_KEY=bitcoinMonthlyReturns.png
 ```
 
 4. Run the application:

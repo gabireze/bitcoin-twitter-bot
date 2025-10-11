@@ -19,7 +19,6 @@ Este documento explica as alterações feitas para desabilitar temporariamente o
 ### ✅ O que CONTINUA funcionando:
 - Posts no BlueSky (todas as funcionalidades)
 - Geração de screenshots
-- Upload para S3
 - Fetch de dados de APIs
 - Logging completo
 - Estrutura unificada do bot
@@ -54,7 +53,6 @@ Isso permite monitorar facilmente que o sistema está funcionando corretamente, 
 ## Compatibilidade
 
 As alterações mantêm 100% de compatibilidade com:
-- AWS Lambda handlers existentes
 - Estrutura de logs
 - Retorno de resultados
 - Tratamento de erros do BlueSky

@@ -29,7 +29,7 @@ app.get('/health', (req, res) => {
 // Bot controller instance
 const bot = new BotController();
 
-// Action mapping - mesmas ações que eram usadas no Lambda
+// Action mapping - ações disponíveis via API
 const actionMap = {
   // Fear & Greed Index (com imagem)
   tweetFearGreedIndexTweet: () => bot.postFearGreedIndex(),

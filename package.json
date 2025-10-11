@@ -5,9 +5,6 @@
   "main": "index.mjs",
   "dependencies": {
     "@atproto/api": "^0.13.6",
-    "@aws-sdk/client-s3": "^3.496.0",
-    "@aws-sdk/lib-storage": "^3.496.0",
-    "@aws-sdk/s3-request-presigner": "^3.496.0",
     "axios": "^1.6.5",
     "dotenv": "^16.3.2",
     "express": "^4.18.2",
@@ -17,7 +14,6 @@
   },
   "devDependencies": {
     "eslint": "^8.55.0",
-    "jest": "^29.7.0",
     "prettier": "^3.1.0",
     "puppeteer": "^24.17.0"
   },
@@ -30,8 +26,6 @@
     "pm2:restart": "pm2 restart bitcoin-bot",
     "pm2:logs": "pm2 logs bitcoin-bot",
     "pm2:status": "pm2 status",
-    "test": "NODE_OPTIONS='--experimental-vm-modules' jest",
-    "test:watch": "NODE_OPTIONS='--experimental-vm-modules' jest --watch",
     "lint": "eslint \"src/**/*.mjs\"",
     "lint:fix": "eslint \"src/**/*.mjs\" --fix",
     "format": "prettier --write src/"
