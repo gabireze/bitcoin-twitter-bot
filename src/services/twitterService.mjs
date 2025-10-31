@@ -1,8 +1,9 @@
-import axios from 'axios';
+// IMPORTS COMENTADOS TEMPORARIAMENTE (não usados com Twitter desabilitado)
+// import axios from 'axios';
 import dotenv from 'dotenv';
-import fs from 'fs';
+// import fs from 'fs';
 import { TwitterApi } from 'twitter-api-v2';
-import { APIError } from '../utils/errors.mjs';
+// import { APIError } from '../utils/errors.mjs';
 import { logger } from '../utils/logger.mjs';
 
 dotenv.config();
@@ -14,6 +15,8 @@ export const twitterClient = new TwitterApi({
   accessSecret: process.env.TWITTER_ACCESS_TOKEN_SECRET,
 });
 
+// VARIÁVEIS E FUNÇÕES AUXILIARES COMENTADAS TEMPORARIAMENTE (não usadas com Twitter desabilitado)
+/*
 // Enhanced Rate limit tracker with circuit breaker
 let lastTweetTime = 0;
 let consecutiveFailures = 0;
@@ -54,7 +57,10 @@ const checkCircuitBreaker = () => {
   }
   return false;
 };
+*/
 
+// FUNÇÕES AUXILIARES COMENTADAS TEMPORARIAMENTE (não usadas com Twitter desabilitado)
+/*
 const ensureRateLimit = async () => {
   // Check if circuit breaker is open
   if (checkCircuitBreaker()) {
@@ -143,8 +149,22 @@ const retryWithBackoff = async (fn, maxRetries = 3, initialDelay = 5000) => {
     }
   }
 };
+*/
 
+// FUNÇÃO COMENTADA TEMPORARIAMENTE - Twitter posts desabilitados
 export const postTweet = async (message, mediaIds) => {
+  logger.info('Twitter posting is DISABLED - postTweet function commented out', {
+    messageLength: message.length,
+    hasMedia: !!mediaIds,
+  });
+
+  // Retorna um objeto simulado para manter compatibilidade
+  return {
+    id: 'disabled_' + Date.now(),
+    text: message,
+  };
+
+  /* CÓDIGO ORIGINAL COMENTADO:
   try {
     // Check circuit breaker and apply rate limiting
     await ensureRateLimit();
@@ -188,9 +208,19 @@ export const postTweet = async (message, mediaIds) => {
 
     throw new APIError(`Failed to post tweet: ${error.message}`, 'Twitter');
   }
+  */
 };
 
+// FUNÇÃO COMENTADA TEMPORARIAMENTE - Twitter uploads desabilitados
 export const uploadMediaAndGetIds = async medias => {
+  logger.info('Twitter media upload is DISABLED - uploadMediaAndGetIds function commented out', {
+    count: medias.length,
+  });
+
+  // Retorna IDs simulados para manter compatibilidade
+  return medias.map((_, index) => `disabled_media_${Date.now()}_${index}`);
+
+  /* CÓDIGO ORIGINAL COMENTADO:
   try {
     // Check circuit breaker before attempting media upload
     if (checkCircuitBreaker()) {
@@ -257,4 +287,5 @@ export const uploadMediaAndGetIds = async medias => {
     });
     throw new APIError(`Error uploading media: ${error.message}`, 'Twitter');
   }
+  */
 };

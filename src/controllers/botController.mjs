@@ -2,7 +2,8 @@ import { fetchPriceData } from '../services/bitcoinDataService.mjs';
 import { getFearGreedIndex } from '../services/fearGreedIndexService.mjs';
 import { captureMonthlyReturnsChart } from '../processors/screenshotProcessor.mjs';
 import { saveImageLocally, downloadAndSaveImage } from '../services/localImageService.mjs';
-import { postTweet, uploadMediaAndGetIds } from '../services/twitterService.mjs';
+// IMPORTS DO TWITTER COMENTADOS TEMPORARIAMENTE
+// import { postTweet, uploadMediaAndGetIds } from '../services/twitterService.mjs';
 import { postBlueSkyWithMedia, postBlueSkyWithoutMedia } from '../services/blueskyService.mjs';
 import {
   createDailyPriceUpdate,
@@ -46,7 +47,9 @@ export class BotController {
 
       // Post to both platforms simultaneously with graceful error handling
       const [twitterResponse, blueSkyResponse] = await Promise.allSettled([
-        postTweet(summaryMessage),
+        // TWITTER DESABILITADO TEMPORARIAMENTE
+        // postTweet(summaryMessage),
+        Promise.resolve({ id: 'disabled_' + Date.now(), text: summaryMessage }),
         postBlueSkyWithoutMedia(summaryMessage),
       ]);
 
@@ -107,7 +110,9 @@ export class BotController {
 
       // Post to both platforms simultaneously
       const [twitterResponse, blueSkyResponse] = await Promise.allSettled([
-        postTweet(summaryMessage),
+        // TWITTER DESABILITADO TEMPORARIAMENTE
+        // postTweet(summaryMessage),
+        Promise.resolve({ id: 'disabled_' + Date.now(), text: summaryMessage }),
         postBlueSkyWithoutMedia(summaryMessage),
       ]);
 
@@ -160,12 +165,16 @@ export class BotController {
 
       // 4. Postar simultaneamente nas duas plataformas
       const [twitterResponse, blueSkyResponse] = await Promise.allSettled([
+        // TWITTER DESABILITADO TEMPORARIAMENTE
+        /*
         (async () => {
           const mediaIds = await uploadMediaAndGetIds([
             { path: localImageUrl, mimeType: 'image/png' },
           ]);
           return postTweet(fearGreedIndexMessage, mediaIds);
         })(),
+        */
+        Promise.resolve({ id: 'disabled_' + Date.now(), text: fearGreedIndexMessage }),
         postBlueSkyWithMedia(
           fearGreedIndexMessage,
           localImageUrl,
@@ -223,10 +232,14 @@ export class BotController {
 
       // 4. Postar simultaneamente nas duas plataformas
       const [twitterResponse, blueSkyResponse] = await Promise.allSettled([
+        // TWITTER DESABILITADO TEMPORARIAMENTE
+        /*
         (async () => {
           const mediaIds = await uploadMediaAndGetIds([{ path: imageUrl, mimeType: 'image/png' }]);
           return postTweet(tweetMessage, mediaIds);
         })(),
+        */
+        Promise.resolve({ id: 'disabled_' + Date.now(), text: tweetMessage }),
         postBlueSkyWithMedia(tweetMessage, imageUrl, 'Bitcoin Monthly Returns Heatmap'),
       ]);
 
