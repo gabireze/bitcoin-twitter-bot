@@ -2,6 +2,9 @@
 
 A robust Node.js application that automatically posts Bitcoin price updates, market cap, volume data, and Fear & Greed Index information on both Twitter and BlueSky. Built with modern JavaScript practices, comprehensive error handling, and designed for flexible deployment.
 
+## GitAds Sponsored
+[![Sponsored by GitAds](https://gitads.dev/v1/ad-serve?source=gabireze/bitcoin-twitter-bot@github)](https://gitads.dev/v1/ad-track?source=gabireze/bitcoin-twitter-bot@github)
+
 ## ✨ Features
 
 - 🔄 **Automated Posting**: Schedules regular updates on both Twitter and BlueSky
