@@ -4,18 +4,18 @@
   "version": "1.0.0",
   "main": "index.mjs",
   "dependencies": {
-    "@atproto/api": "^0.18.1",
-    "axios": "^1.13.2",
-    "dotenv": "^17.2.3",
-    "express": "^5.1.0",
+    "@atproto/api": "^0.18.20",
+    "axios": "^1.13.5",
+    "dotenv": "^17.2.4",
+    "express": "^5.2.1",
     "node-cron": "^4.2.1",
-    "puppeteer": "^24.30.0",
-    "twitter-api-v2": "^1.28.0"
+    "puppeteer": "^24.37.2",
+    "twitter-api-v2": "^1.29.0"
   },
   "devDependencies": {
-    "eslint": "^9.39.1",
-    "prettier": "^3.6.2",
-    "puppeteer": "^24.30.0"
+    "eslint": "^10.0.0",
+    "prettier": "^3.8.1",
+    "puppeteer": "^24.37.2"
   },
   "scripts": {
     "start": "node index.mjs",

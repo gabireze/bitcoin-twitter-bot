@@ -1,7 +1,7 @@
 import * as dotenv from 'dotenv';
 import { BotController } from './src/controllers/botController.mjs';
-import { logger } from './src/utils/logger.mjs';
 import { AppError } from './src/utils/errors.mjs';
+import { logger } from './src/utils/logger.mjs';
 
 dotenv.config();
 
@@ -127,6 +127,22 @@ export const handler = async (event, context) => {
 };
 
 // Execução direta (desenvolvimento local)
-if (process.argv[1] === new URL(import.meta.url).pathname) {
-  main();
+if (process.argv[1]) {
+  const currentFile = new URL(import.meta.url).pathname;
+  const normalizedArgv = process.argv[1].replace(/\\/g, '/');
+  const normalizedCurrent = currentFile.replace(/^\/([A-Z]:)/, '$1'); // Remove leading / on Windows
+  
+  if (normalizedArgv === normalizedCurrent || 
+      normalizedArgv.endsWith(normalizedCurrent.split('/').pop())) {
+    main().catch(error => {
+      logger.error('Uncaught error in main:', error);
+      process.exit(1);
+    });
+  }
+} else {
+  // Run main if no argv[1] for safety
+  main().catch(error => {
+    logger.error('Uncaught error in main:', error);
+    process.exit(1);
+  });
 }

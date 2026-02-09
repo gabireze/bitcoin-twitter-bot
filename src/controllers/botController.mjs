@@ -1,19 +1,19 @@
+import { captureMonthlyReturnsChart } from '../processors/screenshotProcessor.mjs';
 import { fetchPriceData } from '../services/bitcoinDataService.mjs';
 import { getFearGreedIndex } from '../services/fearGreedIndexService.mjs';
-import { captureMonthlyReturnsChart } from '../processors/screenshotProcessor.mjs';
-import { saveImageLocally, downloadAndSaveImage } from '../services/localImageService.mjs';
+import { downloadAndSaveImage, saveImageLocally } from '../services/localImageService.mjs';
 // IMPORTS DO TWITTER COMENTADOS TEMPORARIAMENTE
 // import { postTweet, uploadMediaAndGetIds } from '../services/twitterService.mjs';
-import { postBlueSkyWithMedia, postBlueSkyWithoutMedia } from '../services/blueskyService.mjs';
-import {
-  createDailyPriceUpdate,
-  createHourlyPriceUpdate,
-} from '../messageTemplates/priceMessages.mjs';
+import { config, validateEnvironment } from '../config/config.mjs';
 import { createFearGreedMessage } from '../messageTemplates/fearGreedMessages.mjs';
 import { createMonthlyReturnsMessage } from '../messageTemplates/monthlyReturnsMessages.mjs';
-import { config, validateEnvironment } from '../config/config.mjs';
-import { logger } from '../utils/logger.mjs';
+import {
+    createDailyPriceUpdate,
+    createHourlyPriceUpdate,
+} from '../messageTemplates/priceMessages.mjs';
+import { postBlueSkyWithMedia, postBlueSkyWithoutMedia } from '../services/blueskyService.mjs';
 import { ValidationError } from '../utils/errors.mjs';
+import { logger } from '../utils/logger.mjs';
 
 /**
  * BotController - Sistema unificado que posta simultaneamente no Twitter e BlueSky
@@ -158,7 +158,7 @@ export class BotController {
       const classification = fearGreedIndexData.data[0].value_classification;
 
       // 3. Baixar e salvar Fear & Greed Index image localmente
-      const localImageUrl = await downloadAndSaveImage(
+      const imageResult = await downloadAndSaveImage(
         config.images.fearGreedIndexUrl,
         'fearGreedIndex.png'
       );
@@ -169,7 +169,7 @@ export class BotController {
         /*
         (async () => {
           const mediaIds = await uploadMediaAndGetIds([
-            { path: localImageUrl, mimeType: 'image/png' },
+            { path: imageResult.localPath, mimeType: 'image/png' },
           ]);
           return postTweet(fearGreedIndexMessage, mediaIds);
         })(),
@@ -177,7 +177,7 @@ export class BotController {
         Promise.resolve({ id: 'disabled_' + Date.now(), text: fearGreedIndexMessage }),
         postBlueSkyWithMedia(
           fearGreedIndexMessage,
-          localImageUrl,
+          imageResult.localPath,
           `Fear & Greed Index is ${indexValue} (${classification})`
         ),
       ]);
@@ -219,11 +219,11 @@ export class BotController {
       }
 
       // 2. Salvar imagem localmente UMA vez só
-      const imageUrl = await saveImageLocally(
+      const imageResult = await saveImageLocally(
         screenshotBuffer,
         config.images.bitcoinMonthlyReturnsPath
       );
-      if (!imageUrl) {
+      if (!imageResult) {
         throw new ValidationError('Failed to save Bitcoin Monthly Returns screenshot');
       }
 
@@ -235,12 +235,12 @@ export class BotController {
         // TWITTER DESABILITADO TEMPORARIAMENTE
         /*
         (async () => {
-          const mediaIds = await uploadMediaAndGetIds([{ path: imageUrl, mimeType: 'image/png' }]);
+          const mediaIds = await uploadMediaAndGetIds([{ path: imageResult.localPath, mimeType: 'image/png' }]);
           return postTweet(tweetMessage, mediaIds);
         })(),
         */
         Promise.resolve({ id: 'disabled_' + Date.now(), text: tweetMessage }),
-        postBlueSkyWithMedia(tweetMessage, imageUrl, 'Bitcoin Monthly Returns Heatmap'),
+        postBlueSkyWithMedia(tweetMessage, imageResult.localPath, 'Bitcoin Monthly Returns Heatmap'),
       ]);
 
       const results = {
@@ -259,7 +259,7 @@ export class BotController {
       logger.info('Bitcoin Monthly Returns posted to both platforms', {
         twitter: results.twitter.success ? 'SUCCESS' : 'FAILED',
         bluesky: results.bluesky.success ? 'SUCCESS' : 'FAILED',
-        imageUrl,
+        imageUrl: imageResult.publicUrl,
       });
 
       return results;

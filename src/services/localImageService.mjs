@@ -17,10 +17,10 @@ const ensureDirectoryExists = async () => {
 };
 
 /**
- * Salva um buffer como arquivo local e retorna a URL pública
+ * Salva um buffer como arquivo local e retorna paths local e público
  * @param {Buffer} buffer - Buffer da imagem
  * @param {string} filename - Nome do arquivo (ex: bitcoinMonthlyReturns.png)
- * @returns {string} URL pública da imagem
+ * @returns {Object} { localPath: string, publicUrl: string }
  */
 export const saveImageLocally = async (buffer, filename) => {
   try {
@@ -37,7 +37,7 @@ export const saveImageLocally = async (buffer, filename) => {
     // Salvar arquivo
     await fs.writeFile(filePath, buffer);
 
-    // Retornar URL pública
+    // Retornar ambos os caminhos
     const publicUrl = `${BASE_URL}/${finalFilename}`;
 
     logger.info('Image saved locally', {
@@ -46,7 +46,10 @@ export const saveImageLocally = async (buffer, filename) => {
       url: publicUrl,
     });
 
-    return publicUrl;
+    return {
+      localPath: filePath,
+      publicUrl: publicUrl,
+    };
   } catch (error) {
     logger.error('Failed to save image locally', error);
     throw error;
