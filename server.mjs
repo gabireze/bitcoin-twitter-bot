@@ -10,14 +10,8 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 const HOST = process.env.HOST || '0.0.0.0'; // Escutar em todas as interfaces para compatibilidade com nginx
-
-// Middleware
 app.use(express.json());
-
-// Servir arquivos estáticos (imagens)
 app.use('/images', express.static('./public/images'));
-
-// Health check endpoint
 app.get('/health', (req, res) => {
   res.json({
     status: 'healthy',
@@ -25,33 +19,20 @@ app.get('/health', (req, res) => {
     uptime: process.uptime(),
   });
 });
-
-// Bot controller instance
 const bot = new BotController();
-
-// Action mapping - ações disponíveis via API
 const actionMap = {
-  // Fear & Greed Index (com imagem)
   tweetFearGreedIndexTweet: () => bot.postFearGreedIndex(),
   postBlueSkyFearGreedIndexTweet: () => bot.postFearGreedIndex(),
   postFearGreedIndexToAll: () => bot.postFearGreedIndex(),
-
-  // Bitcoin Monthly Returns (com screenshot)
   tweetBitcoinMonthlyReturns: () => bot.postMonthlyReturns(),
   postBlueSkyBitcoinMonthlyReturns: () => bot.postMonthlyReturns(),
   postBitcoinMonthlyReturnsToAll: () => bot.postMonthlyReturns(),
-
-  // Bitcoin 1h Price Update (texto simples)
   tweetBitcoin1hPriceUpdate: () => bot.postHourlyPriceUpdate(),
   postBlueSkyBitcoin1hPriceUpdate: () => bot.postHourlyPriceUpdate(),
   postBitcoin1hPriceUpdateToAll: () => bot.postHourlyPriceUpdate(),
-
-  // Bitcoin 24h Price Update (texto simples)
   tweetBitcoin24hPriceUpdate: () => bot.postDailyPriceUpdate(),
   postBlueSkyBitcoin24hPriceUpdate: () => bot.postDailyPriceUpdate(),
   postBitcoin24hPriceUpdateToAll: () => bot.postDailyPriceUpdate(),
-
-  // Todas as tarefas
   allUnifiedTasks: async () => {
     const results = {};
     try {
@@ -66,8 +47,6 @@ const actionMap = {
     return results;
   },
 };
-
-// Generic endpoint to execute any action
 app.post('/execute/:action', async (req, res) => {
   const { action } = req.params;
 
@@ -99,8 +78,6 @@ app.post('/execute/:action', async (req, res) => {
     });
   }
 });
-
-// Endpoint para executar todas as tarefas
 app.post('/execute-all', async (req, res) => {
   try {
     logger.info('Execute all tasks triggered', { ip: req.ip });
@@ -135,8 +112,6 @@ app.post('/execute-all', async (req, res) => {
     });
   }
 });
-
-// Lista todas as ações disponíveis
 app.get('/actions', (req, res) => {
   res.json({
     availableActions: Object.keys(actionMap),
@@ -144,12 +119,8 @@ app.get('/actions', (req, res) => {
     timestamp: new Date().toISOString(),
   });
 });
-
-// Configuração dos cron jobs
 function setupCronJobs() {
   logger.info('Setting up internal cron jobs with node-cron...');
-
-  // A cada hora (no minuto 0) - Bitcoin 1h Price Update
   cron.schedule(
     '0 * * * *',
     async () => {
@@ -166,8 +137,6 @@ function setupCronJobs() {
       timezone: 'UTC',
     }
   );
-
-  // A cada 12 horas (00:00 e 12:00 UTC) - Bitcoin 24h Price Update
   cron.schedule(
     '0 */12 * * *',
     async () => {
@@ -184,8 +153,6 @@ function setupCronJobs() {
       timezone: 'UTC',
     }
   );
-
-  // A cada 24 horas (às 00:00 UTC) - Fear & Greed Index
   cron.schedule(
     '0 0 * * *',
     async () => {
@@ -202,18 +169,13 @@ function setupCronJobs() {
       timezone: 'UTC',
     }
   );
-
-  // Último dia do mês às 12:00 UTC - Monthly Returns
   cron.schedule(
     '0 12 28-31 * *',
     async () => {
       try {
-        // Verificar se é realmente o último dia do mês
         const today = new Date();
         const tomorrow = new Date(today);
         tomorrow.setDate(today.getDate() + 1);
-
-        // Se o mês de amanhã for diferente do mês de hoje, é o último dia do mês
         if (tomorrow.getMonth() !== today.getMonth()) {
           logger.info('📅 Cron job triggered: monthly returns (last day of month)');
           await bot.postMonthlyReturns();
@@ -238,8 +200,6 @@ function setupCronJobs() {
   logger.info('  • Last day of month at 12:00 (0 12 28-31 * *): Monthly Returns');
   logger.info('  • All times in UTC timezone');
 }
-
-// Graceful shutdown
 process.on('SIGTERM', () => {
   logger.info('SIGTERM signal received: closing HTTP server');
   server.close(() => {
@@ -255,15 +215,11 @@ process.on('SIGINT', () => {
     process.exit(0);
   });
 });
-
-// Start server - Escutar em todas as interfaces para compatibilidade com nginx
 const server = app.listen(PORT, HOST, () => {
   logger.info(`Bitcoin Bot Server started on ${HOST}:${PORT} (all interfaces)`);
   logger.info(`Health check: http://localhost:${PORT}/health`);
   logger.info(`Available actions: http://localhost:${PORT}/actions`);
   logger.info('🔒 Server accessible via nginx proxy (firewalled externally)');
-
-  // Setup cron jobs after server starts
   setupCronJobs();
 });
 

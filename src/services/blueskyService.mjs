@@ -9,26 +9,19 @@ dotenv.config();
 
 const BLUESKY_BOT_USERNAME = process.env.BLUESKY_USERNAME;
 const BLUESKY_BOT_PASSWORD = process.env.BLUESKY_PASSWORD;
-
-// Detectar MIME type correto baseado em Content-Type header ou extensão do arquivo
 const guessMimeType = (imagePath, headers = {}) => {
-  // Primeiro tenta o Content-Type header (para URLs)
   const contentType = (headers['content-type'] || '').toLowerCase();
 
   if (contentType.includes('image/jpeg')) return 'image/jpeg';
   if (contentType.includes('image/png')) return 'image/png';
   if (contentType.includes('image/webp')) return 'image/webp';
   if (contentType.includes('image/gif')) return 'image/gif';
-
-  // Fallback para extensão do arquivo
   const ext = path.extname(imagePath).toLowerCase();
   
   if (ext === '.jpg' || ext === '.jpeg') return 'image/jpeg';
   if (ext === '.png') return 'image/png';
   if (ext === '.webp') return 'image/webp';
   if (ext === '.gif') return 'image/gif';
-
-  // Padrão seguro
   logger.warn('Could not determine image MIME type, defaulting to image/png', {
     path: imagePath,
     contentType,
@@ -82,7 +75,6 @@ const uploadBlueSkyMedia = async (agent, imagePath) => {
     logger.info('Uploading image to BlueSky', { imagePath });
 
     if (imagePath.startsWith('http')) {
-      // Download de URL
       const response = await axios.get(imagePath, {
         responseType: 'arraybuffer',
         timeout: 30000,
@@ -90,8 +82,6 @@ const uploadBlueSkyMedia = async (agent, imagePath) => {
 
       responseHeaders = response.headers || {};
       imageBuffer = Buffer.from(response.data);
-
-      // Validar que é realmente uma imagem
       const contentType = (responseHeaders['content-type'] || '').toLowerCase();
       if (!contentType.startsWith('image/')) {
         throw new Error(
@@ -105,7 +95,6 @@ const uploadBlueSkyMedia = async (agent, imagePath) => {
         size: imageBuffer.length,
       });
     } else {
-      // Arquivo local
       if (!fs.existsSync(imagePath)) {
         throw new Error(`File not found: ${imagePath}`);
       }
@@ -117,18 +106,13 @@ const uploadBlueSkyMedia = async (agent, imagePath) => {
         size: imageBuffer.length,
       });
     }
-
-    // Validar tamanho (Bluesky tem limite de ~976KB)
-    const MAX_SIZE = 976 * 1024; // 976 KB
+    const MAX_SIZE = 976 * 1024;
     if (imageBuffer.length > MAX_SIZE) {
       logger.warn('Image exceeds BlueSky size limit', {
         size: imageBuffer.length,
         limit: MAX_SIZE,
       });
-      // Continuar mesmo assim, deixar Bluesky retornar erro se necessário
     }
-
-    // Detectar MIME type correto
     finalMimeType = guessMimeType(imagePath, responseHeaders);
 
     logger.info('Uploading blob to BlueSky', {

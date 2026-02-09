@@ -1,8 +1,8 @@
-import axios from "axios";
+import axios from 'axios';
 
 export const getFearGreedIndex = async () => {
   try {
-    const response = await axios.get("https://api.alternative.me/fng/");
+    const response = await axios.get('https://api.alternative.me/fng/');
 
     if (
       !response.data ||
@@ -10,7 +10,7 @@ export const getFearGreedIndex = async () => {
       !response.data.data[0].value ||
       !response.data.data[0].value_classification
     ) {
-      throw new Error("Invalid response structure from Fear & Greed Index API");
+      throw new Error('Invalid response structure from Fear & Greed Index API');
     }
 
     return response.data;
@@ -20,9 +20,9 @@ export const getFearGreedIndex = async () => {
         `Error fetching fear and greed index data: ${error.response.status} ${error.response.statusText}`
       );
     } else if (error.request) {
-      throw new Error("No response received from Fear & Greed Index API");
+      throw new Error('No response received from Fear & Greed Index API');
     } else {
-      throw new Error("Error setting up request to Fear & Greed Index API");
+      throw new Error('Error setting up request to Fear & Greed Index API');
     }
   }
 };

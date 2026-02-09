@@ -1,20 +1,23 @@
 # Bitcoin Twitter & BlueSky Bot
 
-A robust Node.js application that automatically posts Bitcoin price updates, market cap, volume data, and Fear & Greed Index information on both Twitter and BlueSky. Built with modern JavaScript practices, comprehensive error handling, and designed for flexible deployment.
+A robust Node.js application that automatically posts Bitcoin price updates, market cap, volume data, and Fear & Greed Index information to BlueSky. Built with modern JavaScript practices, comprehensive error handling, and designed for flexible deployment.
+
+> **Note**: Twitter/X posting is currently disabled due to API access restrictions and strict rate limiting policies that have been implemented since Twitter's rebranding to X. Only BlueSky is active. See [TWITTER_DISABLED.md](TWITTER_DISABLED.md) for details on re-enabling Twitter support when access becomes available.
 
 ## GitAds Sponsored
 [![Sponsored by GitAds](https://gitads.dev/v1/ad-serve?source=gabireze/bitcoin-twitter-bot@github)](https://gitads.dev/v1/ad-track?source=gabireze/bitcoin-twitter-bot@github)
 
-## ✨ Features
+## Features
 
-- 🔄 **Automated Posting**: Schedules regular updates on both Twitter and BlueSky
-- 📊 **Multi-Data Sources**: Integrates with CoinGecko API and Fear & Greed Index
-- 📈 **Screenshot Generation**: Creates visual charts using Puppeteer and Chromium
-- 🛡️ **Error Handling**: Comprehensive error management with retry logic
-- 📝 **Structured Logging**: JSON-formatted logs for better monitoring
-- 🏗️ **Modern Architecture**: Clean separation of concerns and modular design
+- **Dual Platform Support**: Posts to BlueSky (currently active) and Twitter/X (when enabled)
+- **Multi-Data Sources**: Integrates with CoinGecko API and Fear & Greed Index
+- **Screenshot Generation**: Creates visual charts using Puppeteer and Chromium
+- **Error Handling**: Comprehensive error management with retry logic
+- **Structured Logging**: JSON-formatted logs for better monitoring
+- **Modern Architecture**: Clean separation of concerns and modular design
+- **Scheduled Tasks**: Hourly, 12-hourly, daily, and monthly automated posts via node-cron
 
-## 🔧 Architecture
+## Architecture
 
 ```
 src/
@@ -26,12 +29,11 @@ src/
 └── utils/           # Utilities and helpers
 ```
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
 - Node.js 20+
-- Twitter Developer Account
 - BlueSky Account
 
 ### Installation
@@ -58,7 +60,7 @@ src/
    npm start
    ```
 
-## 🏗️ Development
+## Development
 
 ### Available Scripts
 
@@ -69,7 +71,7 @@ npm run lint:fix   # Fix linting issues
 npm run format     # Format code with Prettier
 ```
 
-## 🚀 Deployment
+## Deployment
 
 ### Local/Server Deployment
 
@@ -95,14 +97,14 @@ docker build -t bitcoin-twitter-bot .
 docker run --env-file .env bitcoin-twitter-bot
 ```
 
-## 🔒 Security Considerations
+## Security Considerations
 
 - **Never commit `.env` files** - Use environment variables or secure configuration management
 - **Rotate API keys regularly**
 - **Use minimal permissions for service accounts**
 - **Enable structured logging** for monitoring
 
-## 📊 Monitoring
+## Monitoring
 
 The application includes structured logging:
 
@@ -115,7 +117,7 @@ The application includes structured logging:
 }
 ```
 
-## 🤝 Contributing
+## Contributing
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
@@ -129,7 +131,7 @@ This project uses:
 - **ESLint** for linting
 - **Prettier** for code formatting
 
-## 🐛 Error Handling
+## Error Handling
 
 The application includes comprehensive error handling:
 
@@ -138,137 +140,85 @@ The application includes comprehensive error handling:
 - **Configuration Errors**: Environment variable validation
 - **Graceful Degradation**: Continues operation if individual tasks fail
 
-## 📋 API Integrations
+## API Integrations
 
 ### CoinGecko API
 - Fetches Bitcoin price, market cap, and volume data
 - Handles rate limiting and API errors
 - Validates data structure
 
-### Twitter API v2
-- Posts tweets with media support
-- Retry logic for failed posts
+### Twitter/X API v2 (Currently Disabled)
+- Designed to post tweets with media support
+- Includes retry logic for failed posts
 - Media upload handling
+- **Status**: Disabled due to API access restrictions (see [TWITTER_DISABLED.md](TWITTER_DISABLED.md))
 
-### BlueSky API
+### BlueSky API (Active)
 - Rich text formatting
 - Image uploads with alt text
 - Proper error handling
+- Fully operational
 
-## 🔧 Configuration
+## Configuration
 
 ### Environment Variables
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `COIN_ID` | Yes | CoinGecko coin identifier |
-| `CURRENCY` | Yes | Base currency for prices |
-| `APP_KEY` | Yes | Twitter API key |
-| `BLUESKY_APP_USERNAME` | Yes | BlueSky handle |
+| `COIN_ID` | Yes | CoinGecko coin identifier (e.g., 'bitcoin') |
+| `CURRENCY` | Yes | Base currency for prices (e.g., 'usd') |
+| `COINGECKO_API_URL` | Yes | CoinGecko API endpoint |
+| `BLUESKY_USERNAME` | Yes | BlueSky handle (e.g., username.bsky.social) |
+| `BLUESKY_PASSWORD` | Yes | BlueSky app password |
+| `FEAR_GREED_INDEX_IMAGE_URL` | Yes | Fear & Greed Index image URL |
+| `FEAR_GREED_INDEX_IMAGE_PATH` | Yes | Local path to store Fear & Greed image |
+| `BITCOIN_MONTHLY_RETURNS_IMAGE_PATH` | Yes | Local path to store monthly returns chart |
 | `LOG_LEVEL` | No | Logging level (DEBUG, INFO, WARN, ERROR) |
 
 See `.env.exemple` for complete configuration options.
 
-## 📈 Performance
+## Performance
 
 - **Retry Logic**: Exponential backoff for failed requests
 - **Timeout Handling**: 10-second timeout for API requests
 - **Memory Optimization**: Efficient buffer handling for images
 - **Concurrent Operations**: Parallel processing where possible
 
-## 🆕 Recent Improvements
+## Recent Improvements
 
-- ✅ Refactored monolithic `index.mjs` into modular architecture
-- ✅ Added comprehensive error handling and custom error classes
-- ✅ Implemented structured logging with JSON format
-- ✅ Added retry logic with exponential backoff
-- ✅ Enhanced data validation and error recovery
-- ✅ Configured ESLint and Prettier for code quality
-- ✅ Added Docker support for containerized deployment
-- ✅ Improved environment variable validation
-- ✅ Enhanced security practices and documentation
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- [CoinGecko](https://coingecko.com) for cryptocurrency data
-- [Twitter API](https://developer.twitter.com) for social media integration
-- [BlueSky](https://bsky.app) for decentralized social networking
-
----
-
-**Follow us for Bitcoin updates:**
-- Twitter: [@BitcoinFocusNow](https://twitter.com/BitcoinFocusNow)
-- BlueSky: [@bitcoinprice.bsky.social](https://bsky.app/profile/bitcoinprice.bsky.social)
-- **axios**: Promise-based HTTP client used for making API requests (e.g., to CoinGecko for price data).
-- **dotenv**: Loads environment variables from a `.env` file to manage sensitive information.
-- **puppeteer-core**: A headless browser tool for generating screenshots or automating web interactions.
-- **twitter-api-v2**: A wrapper for the Twitter API, used to post updates on Twitter.
-
-## Environment Variables
-
-Create a `.env` file in the root directory of the project and add your Twitter and BlueSky API credentials, along with other necessary environment variables.
-
-## Installation
-
-1. Clone this repository to your local machine:
-
-   ```bash
-   git clone https://github.com/gabireze/bitcoin-twitter-bot.git
-   ```
-
-2. Install the required packages:
-
-   ```bash
-   cd bitcoin-twitter-bot
-   npm install
-   ```
-
-3. Create a **.env** file in the root directory of the project and add your Twitter and BlueSky API credentials:
-
-```
-APP_KEY=your-app-key
-APP_SECRET=your-app-secret
-ACCESS_TOKEN=your-access-token
-ACCESS_SECRET=your-access-token-secret
-
-BLUESKY_APP_USERNAME=your_bluesky_handle
-BLUESKY_APP_PASSWORD=your_bluesky_password
-
-COINGECKO_API_URL=https://api.coingecko.com/api/v3
-CURRENCY=usd
-COIN_ID=bitcoin
-FEAR_GREED_INDEX_IMAGE_URL=https://alternative.me/crypto/fear-and-greed-index.png
-FEAR_GREED_INDEX_IMAGE_PATH=./fearAndGreedIndex.png
-BITCOIN_MONTHLY_RETURNS_IMAGE_PATH=bitcoinMonthlyReturns.png
-```
-
-4. Run the application:
-
-   ```bash
-   npm start
-   ```
-
-The application will fetch the latest Bitcoin price data from the [CoinGecko API](https://docs.coingecko.com/v3.0.1/reference/introduction), format the data into a tweet, and post it on both Twitter and BlueSky using your account's credentials.
-
-## Customization
-
-You can customize the application by changing the following variables in the **index.mjs** file:
-
-- **CURRENCY**: the currency in which to display the price and market cap information (default: **"usd"**)
-- **COIN_ID**: the CoinGecko ID of the cryptocurrency to track (default: **"bitcoin"**)
-- **DAYS**: the number of days of historical data to retrieve from the CoinGecko API (default: **1**)
-  You can also modify the tweet message by editing the **getPriceData** function in the index.mjs file.
-
-## Follow us
-
-Stay up to date with the latest #Bitcoin news and price updates by following [@BitcoinFocusNow](https://twitter.com/BitcoinFocusNow) on Twitter and [@bitcoinprice.bsky.social](https://bsky.app/profile/bitcoinprice.bsky.social) on BlueSky!
+- Refactored monolithic `index.mjs` into modular architecture
+- Added comprehensive error handling and custom error classes
+- Implemented structured logging with JSON format
+- Added retry logic with exponential backoff
+- Enhanced data validation and error recovery
+- Configured ESLint and Prettier for code quality
+- Added Docker support for containerized deployment
+- Improved environment variable validation
+- Enhanced security practices and documentation
 
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE](https://opensource.org/license/mit/) file for more information.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-<!-- GitAds-Verify: FOIDMP7E98H76ZX3FE1E9JSUE7J8YRAZ -->
+## Acknowledgments
+
+- [CoinGecko](https://coingecko.com) for cryptocurrency data
+- [Twitter/X](https://developer.twitter.com) for social media API (legacy support)
+- [BlueSky](https://bsky.app) for decentralized social networking
+- [Puppeteer](https://pptr.dev) for automated screenshot generation
+
+---
+
+**Follow us for Bitcoin updates on BlueSky:**
+- [@bitcoinprice.bsky.social](https://bsky.app/profile/bitcoinprice.bsky.social)
+
+## Dependencies
+
+- **@atproto/api**: BlueSky protocol client
+- **axios**: HTTP client for API requests
+- **dotenv**: Environment variable management
+- **express**: Web framework for server endpoints
+- **node-cron**: Task scheduling
+- **puppeteer**: Automated browser for screenshots
+
+

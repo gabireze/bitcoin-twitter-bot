@@ -13,7 +13,7 @@ export const fetchPriceData = async (coinId, currency) => {
 
     const response = await axios.get(endpoint, {
       params: { vs_currency: currency, days: 1, precision: 2 },
-      timeout: 10000, // 10 seconds timeout
+      timeout: 10000,
     });
 
     if (

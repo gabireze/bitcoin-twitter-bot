@@ -1,14 +1,14 @@
 #!/bin/bash
 
-# 🚀 Script de Instalação Automatizada - Bitcoin Bot
-# Execute este script no seu servidor KVM Linux da Hostinger
+# Automated Installation Script - Bitcoin BlueSky Bot
+# Run this script on your Linux server
 
-set -e  # Parar se algum comando falhar
+set -e  # Exit if any command fails
 
-echo "🚀 Iniciando instalação do Bitcoin Bot..."
+echo "Starting Bitcoin BlueSky Bot installation..."
 echo "=================================="
 echo ""
-echo "💡 Este script deve ser executado APÓS fazer o git clone:"
+echo "This script should be run after git clone:"
 echo "   git clone https://github.com/gabireze/bitcoin-twitter-bot.git"
 echo "   cd bitcoin-twitter-bot"
 echo "   ./install.sh"
@@ -21,57 +21,57 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# Função para logs coloridos
+# Colored logging functions
 log_info() { echo -e "${BLUE}[INFO]${NC} $1"; }
 log_success() { echo -e "${GREEN}[SUCCESS]${NC} $1"; }
 log_warning() { echo -e "${YELLOW}[WARNING]${NC} $1"; }
 log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 
-# Verificar se está rodando como root
+# Check if running as root
 if [[ $EUID -eq 0 ]]; then
-   log_warning "Executando como root. Recomendamos usar um usuário normal por segurança."
-   log_warning "Continuando mesmo assim em 5 segundos... (Ctrl+C para cancelar)"
+   log_warning "Running as root. We recommend using a regular user for security."
+   log_warning "Continuing in 5 seconds... (Ctrl+C to cancel)"
    sleep 5
 fi
 
-# 1. Atualizar sistema
-log_info "Atualizando sistema..."
+# 1. Update system
+log_info "Updating system..."
 sudo apt update && sudo apt upgrade -y
-log_success "Sistema atualizado!"
+log_success "System updated!"
 
-# 2. Instalar Node.js 18
-log_info "Instalando Node.js 18..."
+# 2. Install Node.js 18
+log_info "Installing Node.js 18..."
 if ! command -v node &> /dev/null; then
     curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
     sudo apt-get install -y nodejs
-    log_success "Node.js instalado! Versão: $(node --version)"
+    log_success "Node.js installed! Version: $(node --version)"
 else
-    log_warning "Node.js já está instalado. Versão: $(node --version)"
+    log_warning "Node.js is already installed. Version: $(node --version)"
 fi
 
-# 3. Instalar PM2
-log_info "Instalando PM2..."
+# 3. Install PM2
+log_info "Installing PM2..."
 if ! command -v pm2 &> /dev/null; then
     sudo npm install -g pm2
-    log_success "PM2 instalado!"
+    log_success "PM2 installed!"
 else
-    log_warning "PM2 já está instalado."
+    log_warning "PM2 is already installed."
 fi
 
-# 4. Instalar Google Chrome
-log_info "Instalando Google Chrome..."
+# 4. Install Google Chrome
+log_info "Installing Google Chrome..."
 if ! command -v google-chrome &> /dev/null; then
     wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
     sudo sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list'
     sudo apt update
     sudo apt install -y google-chrome-stable
-    log_success "Google Chrome instalado!"
+    log_success "Google Chrome installed!"
 else
-    log_warning "Google Chrome já está instalado."
+    log_warning "Google Chrome is already installed."
 fi
 
-# 5. Instalar dependências do Puppeteer
-log_info "Instalando dependências do Puppeteer..."
+# 5. Install Puppeteer dependencies
+log_info "Installing Puppeteer dependencies..."
 sudo apt install -y \
   libasound2t64 \
   libatk1.0-0t64 \
@@ -109,144 +109,144 @@ sudo apt install -y \
   lsb-release \
   xdg-utils \
   wget
-log_success "Dependências do Puppeteer instaladas!"
+log_success "Puppeteer dependencies installed!"
 
-# 6. Instalar Git se necessário
+# 6. Install Git if needed
 if ! command -v git &> /dev/null; then
-    log_info "Instalando Git..."
+    log_info "Installing Git..."
     sudo apt install -y git
-    log_success "Git instalado!"
+    log_success "Git installed!"
 fi
 
-# 7. Configurar diretórios
-log_info "Criando diretórios necessários..."
-# Criar logs no diretório atual do projeto
+# 7. Configure directories
+log_info "Creating required directories..."
+# Create logs in project directory
 mkdir -p ./logs
 sudo mkdir -p /var/log/bitcoin-bot
 sudo chown $USER:$USER /var/log/bitcoin-bot
-log_success "Diretórios criados!"
+log_success "Directories created!"
 
-# 8. Verificar se estamos no diretório correto da aplicação
+# 8. Verify we are in the correct application directory
 if [ ! -f "package.json" ]; then
-    log_error "package.json não encontrado no diretório atual!"
-    log_error "Certifique-se de executar este script dentro do diretório bitcoin-twitter-bot"
-    log_info "Comandos corretos:"
+    log_error "package.json not found in current directory!"
+    log_error "Make sure to run this script inside the bitcoin-twitter-bot directory"
+    log_info "Correct commands:"
     log_info "  git clone https://github.com/gabireze/bitcoin-twitter-bot.git"
     log_info "  cd bitcoin-twitter-bot"
     log_info "  ./install.sh"
     exit 1
 fi
 
-log_success "Diretório da aplicação confirmado: $(pwd)"
+log_success "Application directory confirmed: $(pwd)"
 
-# 9. Instalar dependências npm
-log_info "Instalando dependências npm..."
+# 9. Install npm dependencies
+log_info "Installing npm dependencies..."
 npm install
-log_success "Dependências instaladas!"
+log_success "Dependencies installed!"
 
-# 10. Verificar arquivo .env
+# 10. Check .env file
 if [ ! -f ".env" ]; then
-    if [ -f ".env.example" ]; then
-        log_info "Criando arquivo .env baseado no .env.example..."
-        cp .env.example .env
-        log_warning "IMPORTANTE: Edite o arquivo .env com suas credenciais!"
-        log_warning "Execute: nano .env"
+    if [ -f ".env.exemple" ]; then
+        log_info "Creating .env file from .env.exemple..."
+        cp .env.exemple .env
+        log_warning "IMPORTANT: Edit .env with your credentials!"
+        log_warning "Run: nano .env"
     else
-        log_warning "Arquivo .env não encontrado. Você precisará criar um manualmente."
+        log_warning ".env file not found. You will need to create one manually."
     fi
 else
-    log_success "Arquivo .env já existe."
+    log_success ".env file already exists."
 fi
 
-# 11. Configurar PM2 startup
-log_info "Configurando PM2 para iniciar automaticamente..."
+# 11. Configure PM2 startup
+log_info "Configuring PM2 for automatic startup..."
 pm2 startup > /tmp/pm2_startup.txt 2>&1 || true
 if grep -q "sudo" /tmp/pm2_startup.txt; then
-    log_warning "Execute o comando sudo mostrado abaixo para configurar o auto-start do PM2:"
+    log_warning "Execute the sudo command shown below to configure PM2 auto-start:"
     cat /tmp/pm2_startup.txt | grep "sudo"
 fi
 
-# 12. Script para iniciar a aplicação
+# 12. Script to start the application
 cat > start_bot.sh << 'EOF'
 #!/bin/bash
-echo "🤖 Iniciando Bitcoin Bot..."
+echo "Starting Bitcoin BlueSky Bot..."
 
-# Verificar se .env existe e está configurado
+# Check if .env exists and is configured
 if [ ! -f ".env" ]; then
-    echo "❌ Arquivo .env não encontrado!"
+    echo "ERROR: .env file not found!"
     exit 1
 fi
 
-# Verificar se as principais variáveis estão definidas
-if ! grep -q "TWITTER_API_KEY=" .env || ! grep -q "BLUESKY_USERNAME=" .env; then
-    echo "⚠️  ATENÇÃO: Configure suas credenciais no arquivo .env primeiro!"
-    echo "Execute: nano .env"
+# Check if main variables are defined
+if ! grep -q "BLUESKY_USERNAME=" .env || ! grep -q "BLUESKY_PASSWORD=" .env; then
+    echo "WARNING: Configure your BlueSky credentials in .env first!"
+    echo "Run: nano .env"
     exit 1
 fi
 
-# Iniciar com PM2
+# Start with PM2
 npm run pm2:start
 
-echo "✅ Bot iniciado com sucesso!"
-echo "Use 'pm2 status' para verificar o status"
-echo "Use 'pm2 logs bitcoin-bot' para ver os logs"
+echo "Bot started successfully!"
+echo "Use 'pm2 status' to check status"
+echo "Use 'pm2 logs bitcoin-bot' to view logs"
 EOF
 
 chmod +x start_bot.sh
 
-# 13. Script para parar a aplicação
+# 13. Script to stop the application
 cat > stop_bot.sh << 'EOF'
 #!/bin/bash
-echo "🛑 Parando Bitcoin Bot..."
+echo "Stopping Bitcoin BlueSky Bot..."
 pm2 stop bitcoin-bot
-echo "✅ Bot parado!"
+echo "Bot stopped!"
 EOF
 
 chmod +x stop_bot.sh
 
-# 14. Script de status
+# 14. Status script
 cat > status_bot.sh << 'EOF'
 #!/bin/bash
-echo "📊 Status do Bitcoin Bot:"
-echo "========================"
+echo "Bitcoin BlueSky Bot Status:"
+echo "==========================="
 pm2 status bitcoin-bot
 echo ""
-echo "🏥 Health Check:"
+echo "Health Check:"
 curl -s http://localhost:3001/health | jq . 2>/dev/null || curl -s http://localhost:3001/health
 echo ""
-echo "📝 Últimos logs:"
+echo "Latest logs:"
 pm2 logs bitcoin-bot --lines 5 --nostream
 EOF
 
 chmod +x status_bot.sh
 
-# Resumo final
+# Final summary
 log_success "=================================="
-log_success "🎉 Instalação concluída!"
+log_success "Installation completed!"
 log_success "=================================="
 echo ""
-log_info "Próximos passos:"
-echo "1. Configure suas credenciais: nano .env"
-echo "2. Inicie o bot: ./start_bot.sh"
-echo "3. Verifique o status: ./status_bot.sh"
-echo "4. Para parar: ./stop_bot.sh"
+log_info "Next steps:"
+echo "1. Configure your credentials: nano .env"
+echo "2. Start the bot: ./start_bot.sh"
+echo "3. Check status: ./status_bot.sh"
+echo "4. To stop: ./stop_bot.sh"
 echo ""
-log_info "Comandos úteis:"
-echo "• pm2 status - Ver status dos processos"
-echo "• pm2 logs bitcoin-bot - Ver logs em tempo real"
-echo "• pm2 restart bitcoin-bot - Reiniciar o bot"
+log_info "Useful commands:"
+echo "• pm2 status - View process status"
+echo "• pm2 logs bitcoin-bot - View logs in real-time"
+echo "• pm2 restart bitcoin-bot - Restart the bot"
 echo "• curl http://localhost:3001/health - Health check"
 echo ""
-log_warning "⚠️  IMPORTANTE: Configure o arquivo .env antes de iniciar o bot!"
+log_warning "IMPORTANT: Configure the .env file before starting the bot!"
 echo ""
 
-# Verificar se tudo está OK
-log_info "Verificação final:"
-node --version && log_success "✓ Node.js OK"
-npm --version && log_success "✓ NPM OK"
-pm2 --version && log_success "✓ PM2 OK"
-google-chrome --version && log_success "✓ Chrome OK"
-log_success "✓ Código da aplicação OK"
+# Final verification
+log_info "Final verification:"
+node --version && log_success "Node.js OK"
+npm --version && log_success "NPM OK"
+pm2 --version && log_success "PM2 OK"
+google-chrome --version && log_success "Chrome OK"
+log_success "Application code OK"
 
 echo ""
-log_success "🚀 Tudo pronto para uso!"
+log_success "Setup complete and ready to use!"

@@ -1,5 +1,5 @@
-import { calculatePercentageChange, formatCurrency } from '../utils/formatUtils.mjs';
 import { ValidationError } from '../utils/errors.mjs';
+import { calculatePercentageChange, formatCurrency } from '../utils/formatUtils.mjs';
 
 const validateDataStructure = data => {
   if (!data) {
@@ -46,7 +46,7 @@ export const getPriceChange1h = data => {
   validateDataStructure(data);
 
   const currentIndex = data.prices.length - 1;
-  const oneHourAgoIndex = currentIndex - 12; // Assuming 5-minute intervals
+  const oneHourAgoIndex = currentIndex - 12;
 
   if (oneHourAgoIndex < 0) {
     throw new ValidationError('Insufficient data for 1-hour price change calculation');

@@ -11,8 +11,6 @@ const main = async () => {
 
     const bot = new BotController();
     const results = await bot.runAllTasks();
-
-    // Log summary
     const successCount = Object.values(results.unified || {}).filter(r => r.success).length;
     const totalTasks = Object.keys(results.unified || {}).length;
 
@@ -34,8 +32,6 @@ const main = async () => {
     process.exit(1);
   }
 };
-
-// Application handler (compatível com diferentes ambientes)
 export const handler = async (event, context) => {
   try {
     logger.info('Application handler invoked', {
@@ -45,38 +41,23 @@ export const handler = async (event, context) => {
 
     const bot = new BotController();
     const action = event.action || event.detail?.action;
-
-    // Se não tem action específica, executa todas as tarefas
     if (!action) {
       logger.info('No specific action provided, running all tasks');
       return await bot.runAllTasks();
     }
-
-    // Mapeamento das ações - TODAS agora postam em ambas as plataformas simultaneamente
     const actionMap = {
-      // ===== AÇÕES UNIFICADAS (UMA REQUEST, AMBAS AS PLATAFORMAS) =====
-
-      // Fear & Greed Index (com imagem)
       tweetFearGreedIndexTweet: () => bot.postFearGreedIndex(),
       postBlueSkyFearGreedIndexTweet: () => bot.postFearGreedIndex(),
       postFearGreedIndexToAll: () => bot.postFearGreedIndex(),
-
-      // Bitcoin Monthly Returns (com screenshot)
       tweetBitcoinMonthlyReturns: () => bot.postMonthlyReturns(),
       postBlueSkyBitcoinMonthlyReturns: () => bot.postMonthlyReturns(),
       postBitcoinMonthlyReturnsToAll: () => bot.postMonthlyReturns(),
-
-      // Bitcoin 1h Price Update (texto simples)
       tweetBitcoin1hPriceUpdate: () => bot.postHourlyPriceUpdate(),
       postBlueSkyBitcoin1hPriceUpdate: () => bot.postHourlyPriceUpdate(),
       postBitcoin1hPriceUpdateToAll: () => bot.postHourlyPriceUpdate(),
-
-      // Bitcoin 24h Price Update (texto simples)
       tweetBitcoin24hPriceUpdate: () => bot.postDailyPriceUpdate(),
       postBlueSkyBitcoin24hPriceUpdate: () => bot.postDailyPriceUpdate(),
       postBitcoin24hPriceUpdateToAll: () => bot.postDailyPriceUpdate(),
-
-      // ===== AÇÕES COMBINADAS (OPCIONAIS) =====
       allUnifiedTasks: async () => {
         const results = {};
         try {
@@ -125,8 +106,6 @@ export const handler = async (event, context) => {
     };
   }
 };
-
-// Execução direta (desenvolvimento local)
 if (process.argv[1]) {
   const currentFile = new URL(import.meta.url).pathname;
   const normalizedArgv = process.argv[1].replace(/\\/g, '/');
@@ -140,7 +119,6 @@ if (process.argv[1]) {
     });
   }
 } else {
-  // Run main if no argv[1] for safety
   main().catch(error => {
     logger.error('Uncaught error in main:', error);
     process.exit(1);

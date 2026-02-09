@@ -13,9 +13,9 @@
     "twitter-api-v2": "^1.29.0"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "eslint": "^10.0.0",
-    "prettier": "^3.8.1",
-    "puppeteer": "^24.37.2"
+    "prettier": "^3.8.1"
   },
   "scripts": {
     "start": "node index.mjs",

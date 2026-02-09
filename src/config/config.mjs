@@ -1,8 +1,6 @@
 import * as dotenv from 'dotenv';
 
 dotenv.config();
-
-// Validação de variáveis de ambiente obrigatórias
 const requiredEnvVars = [
   'COIN_ID',
   'CURRENCY',

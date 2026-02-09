@@ -1,42 +1,27 @@
-import { captureMonthlyReturnsChart } from '../processors/screenshotProcessor.mjs';
-import { fetchPriceData } from '../services/bitcoinDataService.mjs';
-import { getFearGreedIndex } from '../services/fearGreedIndexService.mjs';
-import { downloadAndSaveImage, saveImageLocally } from '../services/localImageService.mjs';
-// IMPORTS DO TWITTER COMENTADOS TEMPORARIAMENTE
-// import { postTweet, uploadMediaAndGetIds } from '../services/twitterService.mjs';
 import { config, validateEnvironment } from '../config/config.mjs';
 import { createFearGreedMessage } from '../messageTemplates/fearGreedMessages.mjs';
 import { createMonthlyReturnsMessage } from '../messageTemplates/monthlyReturnsMessages.mjs';
 import {
-    createDailyPriceUpdate,
-    createHourlyPriceUpdate,
+  createDailyPriceUpdate,
+  createHourlyPriceUpdate,
 } from '../messageTemplates/priceMessages.mjs';
+import { captureMonthlyReturnsChart } from '../processors/screenshotProcessor.mjs';
+import { fetchPriceData } from '../services/bitcoinDataService.mjs';
 import { postBlueSkyWithMedia, postBlueSkyWithoutMedia } from '../services/blueskyService.mjs';
+import { getFearGreedIndex } from '../services/fearGreedIndexService.mjs';
+import { downloadAndSaveImage, saveImageLocally } from '../services/localImageService.mjs';
 import { ValidationError } from '../utils/errors.mjs';
 import { logger } from '../utils/logger.mjs';
 
-/**
- * BotController - Sistema unificado que posta simultaneamente no Twitter e BlueSky
- *
- * TODAS as ações agora postam automaticamente nas duas plataformas:
- * - Economiza recursos (1 request, 2 posts)
- * - Evita duplicação de código
- * - Sincroniza conteúdo entre plataformas
- */
 export class BotController {
   constructor() {
     validateEnvironment();
   }
 
-  // ========================================
-  // UNIFIED METHODS (TWITTER + BLUESKY SIMULTANEOUSLY)
-  // ========================================
-
   async postHourlyPriceUpdate() {
     try {
       logger.info('Starting Bitcoin 1h price update (UNIFIED - BOTH PLATFORMS)');
 
-      // Fetch data once
       const response = await fetchPriceData(config.bitcoin.coinId, config.bitcoin.currency);
 
       if (!response) {
@@ -45,10 +30,7 @@ export class BotController {
 
       const summaryMessage = createHourlyPriceUpdate(response);
 
-      // Post to both platforms simultaneously with graceful error handling
       const [twitterResponse, blueSkyResponse] = await Promise.allSettled([
-        // TWITTER DESABILITADO TEMPORARIAMENTE
-        // postTweet(summaryMessage),
         Promise.resolve({ id: 'disabled_' + Date.now(), text: summaryMessage }),
         postBlueSkyWithoutMedia(summaryMessage),
       ]);
@@ -76,7 +58,6 @@ export class BotController {
         },
       };
 
-      // Enhanced logging with better context
       logger.info(summaryMessage, {
         twitter: results.twitter.success ? 'SUCCESS' : 'FAILED',
         bluesky: results.bluesky.success ? 'SUCCESS' : 'FAILED',
@@ -99,7 +80,6 @@ export class BotController {
     try {
       logger.info('Starting Bitcoin 24h price update (UNIFIED - BOTH PLATFORMS)');
 
-      // Fetch data once
       const priceData = await fetchPriceData(config.bitcoin.coinId, config.bitcoin.currency);
 
       if (!priceData) {
@@ -108,10 +88,7 @@ export class BotController {
 
       const summaryMessage = createDailyPriceUpdate(priceData);
 
-      // Post to both platforms simultaneously
       const [twitterResponse, blueSkyResponse] = await Promise.allSettled([
-        // TWITTER DESABILITADO TEMPORARIAMENTE
-        // postTweet(summaryMessage),
         Promise.resolve({ id: 'disabled_' + Date.now(), text: summaryMessage }),
         postBlueSkyWithoutMedia(summaryMessage),
       ]);
@@ -146,34 +123,21 @@ export class BotController {
     try {
       logger.info('Starting Fear & Greed Index post to ALL platforms (optimized)');
 
-      // 1. Buscar dados UMA vez só
       const fearGreedIndexData = await getFearGreedIndex();
       if (!fearGreedIndexData?.data?.length) {
         throw new ValidationError('Invalid or empty Fear & Greed Index data received');
       }
 
-      // 2. Criar mensagem UMA vez só
       const fearGreedIndexMessage = createFearGreedMessage(fearGreedIndexData);
       const indexValue = fearGreedIndexData.data[0].value;
       const classification = fearGreedIndexData.data[0].value_classification;
 
-      // 3. Baixar e salvar Fear & Greed Index image localmente
       const imageResult = await downloadAndSaveImage(
         config.images.fearGreedIndexUrl,
         'fearGreedIndex.png'
       );
 
-      // 4. Postar simultaneamente nas duas plataformas
       const [twitterResponse, blueSkyResponse] = await Promise.allSettled([
-        // TWITTER DESABILITADO TEMPORARIAMENTE
-        /*
-        (async () => {
-          const mediaIds = await uploadMediaAndGetIds([
-            { path: imageResult.localPath, mimeType: 'image/png' },
-          ]);
-          return postTweet(fearGreedIndexMessage, mediaIds);
-        })(),
-        */
         Promise.resolve({ id: 'disabled_' + Date.now(), text: fearGreedIndexMessage }),
         postBlueSkyWithMedia(
           fearGreedIndexMessage,
@@ -212,13 +176,11 @@ export class BotController {
     try {
       logger.info('Starting Bitcoin Monthly Returns post to ALL platforms (optimized)');
 
-      // 1. Gerar screenshot UMA vez só
       const screenshotBuffer = await captureMonthlyReturnsChart();
       if (!screenshotBuffer) {
         throw new ValidationError('Failed to capture Bitcoin Monthly Returns screenshot');
       }
 
-      // 2. Salvar imagem localmente UMA vez só
       const imageResult = await saveImageLocally(
         screenshotBuffer,
         config.images.bitcoinMonthlyReturnsPath
@@ -227,18 +189,9 @@ export class BotController {
         throw new ValidationError('Failed to save Bitcoin Monthly Returns screenshot');
       }
 
-      // 3. Criar mensagem UMA vez só
       const tweetMessage = await createMonthlyReturnsMessage();
 
-      // 4. Postar simultaneamente nas duas plataformas
       const [twitterResponse, blueSkyResponse] = await Promise.allSettled([
-        // TWITTER DESABILITADO TEMPORARIAMENTE
-        /*
-        (async () => {
-          const mediaIds = await uploadMediaAndGetIds([{ path: imageResult.localPath, mimeType: 'image/png' }]);
-          return postTweet(tweetMessage, mediaIds);
-        })(),
-        */
         Promise.resolve({ id: 'disabled_' + Date.now(), text: tweetMessage }),
         postBlueSkyWithMedia(tweetMessage, imageResult.localPath, 'Bitcoin Monthly Returns Heatmap'),
       ]);
@@ -275,7 +228,6 @@ export class BotController {
       errors: [],
     };
 
-    // Agora usa apenas as funções unificadas - cada uma faz 1 request e posta em ambas as plataformas
     const unifiedTasks = [
       {
         name: 'bitcoin1hPriceUpdate',
@@ -301,7 +253,6 @@ export class BotController {
         const result = await task.method();
         results.unified[task.name] = { success: true, result };
 
-        // Log individual platform results
         const twitterSuccess = result.twitter?.success || false;
         const blueSkySuccess = result.bluesky?.success || false;
 
@@ -309,8 +260,6 @@ export class BotController {
           twitter: twitterSuccess ? 'SUCCESS' : 'FAILED',
           bluesky: blueSkySuccess ? 'SUCCESS' : 'FAILED',
         });
-
-        // Add any errors to the main errors array
         if (!twitterSuccess && result.twitter?.error) {
           results.errors.push({ task: `${task.name}_twitter`, error: result.twitter.error });
         }

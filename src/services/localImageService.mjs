@@ -1,12 +1,8 @@
 import fs from 'fs/promises';
 import path from 'path';
 import { logger } from '../utils/logger.mjs';
-
-// Diretório público para servir imagens
 const PUBLIC_DIR = './public/images';
 const BASE_URL = process.env.BASE_URL || 'https://gabireze.cloud/api/bitcoin';
-
-// Garantir que o diretório existe
 const ensureDirectoryExists = async () => {
   try {
     await fs.mkdir(PUBLIC_DIR, { recursive: true });
@@ -16,28 +12,17 @@ const ensureDirectoryExists = async () => {
   }
 };
 
-/**
- * Salva um buffer como arquivo local e retorna paths local e público
- * @param {Buffer} buffer - Buffer da imagem
- * @param {string} filename - Nome do arquivo (ex: bitcoinMonthlyReturns.png)
- * @returns {Object} { localPath: string, publicUrl: string }
- */
+
 export const saveImageLocally = async (buffer, filename) => {
   try {
     await ensureDirectoryExists();
-
-    // Adicionar timestamp para evitar cache de imagens antigas
     const timestamp = Date.now();
     const fileExtension = path.extname(filename);
     const baseName = path.basename(filename, fileExtension);
     const finalFilename = `${baseName}_${timestamp}${fileExtension}`;
 
     const filePath = path.join(PUBLIC_DIR, finalFilename);
-
-    // Salvar arquivo
     await fs.writeFile(filePath, buffer);
-
-    // Retornar ambos os caminhos
     const publicUrl = `${BASE_URL}/${finalFilename}`;
 
     logger.info('Image saved locally', {
@@ -56,12 +41,7 @@ export const saveImageLocally = async (buffer, filename) => {
   }
 };
 
-/**
- * Baixa uma imagem de URL e salva localmente
- * @param {string} imageUrl - URL da imagem para baixar
- * @param {string} filename - Nome do arquivo local
- * @returns {string} URL pública da imagem salva
- */
+
 export const downloadAndSaveImage = async (imageUrl, filename) => {
   try {
     const response = await fetch(imageUrl);
@@ -77,37 +57,28 @@ export const downloadAndSaveImage = async (imageUrl, filename) => {
   }
 };
 
-/**
- * Limpa imagens antigas (mantém apenas as últimas 10 de cada tipo)
- */
+
 export const cleanupOldImages = async () => {
   try {
     await ensureDirectoryExists();
 
     const files = await fs.readdir(PUBLIC_DIR);
-
-    // Agrupar por tipo de arquivo (bitcoinMonthlyReturns, fearGreedIndex, etc)
     const fileGroups = {};
 
     for (const file of files) {
-      const baseName = file.split('_')[0]; // Remove timestamp
+      const baseName = file.split('_')[0];
       if (!fileGroups[baseName]) {
         fileGroups[baseName] = [];
       }
       fileGroups[baseName].push(file);
     }
-
-    // Manter apenas os 10 mais recentes de cada tipo
     for (const [, files] of Object.entries(fileGroups)) {
       if (files.length > 10) {
-        // Ordenar por timestamp (mais recente primeiro)
         files.sort((a, b) => {
           const timestampA = parseInt(a.split('_').pop().split('.')[0]);
           const timestampB = parseInt(b.split('_').pop().split('.')[0]);
           return timestampB - timestampA;
         });
-
-        // Deletar arquivos antigos
         const filesToDelete = files.slice(10);
         for (const file of filesToDelete) {
           try {
@@ -123,6 +94,4 @@ export const cleanupOldImages = async () => {
     logger.error('Failed to cleanup old images', error);
   }
 };
-
-// Executar limpeza a cada inicialização
 cleanupOldImages();
