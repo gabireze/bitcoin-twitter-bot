@@ -26,7 +26,7 @@ src/
 ├── controllers/      # Business logic controllers
 ├── services/         # External API integrations
 ├── processors/       # Data processing logic
-├── messageBuilders/  # Message formatting
+├── messageTemplates/ # Message formatting templates
 └── utils/           # Utilities and helpers
 ```
 
@@ -66,10 +66,19 @@ src/
 ### Available Scripts
 
 ```bash
-npm start          # Run the application
+npm start          # Run the application (index.mjs)
+npm run server     # Run the HTTP server (server.mjs)
+npm run dev        # Run server with nodemon (development)
 npm run lint       # Lint code
 npm run lint:fix   # Fix linting issues
 npm run format     # Format code with Prettier
+
+# PM2 Management (for production deployment)
+npm run pm2:start   # Start with PM2 using ecosystem.config.cjs
+npm run pm2:stop    # Stop PM2 process
+npm run pm2:restart # Restart PM2 process
+npm run pm2:logs    # View PM2 logs
+npm run pm2:status  # Check PM2 status
 ```
 
 ## Deployment
@@ -98,12 +107,182 @@ docker build -t bitcoin-twitter-bot .
 docker run --env-file .env bitcoin-twitter-bot
 ```
 
+### PM2 Deployment (Production)
+
+For production deployment with PM2:
+
+```bash
+# Start with PM2 using ecosystem.config.cjs
+npm run pm2:start
+# or
+pm2 start ecosystem.config.cjs
+
+# View logs
+pm2 logs bitcoin-bot
+
+# Monitor
+pm2 monit
+
+# Save PM2 configuration
+pm2 save
+pm2 startup  # Generate startup script
+```
+
+See [QUICK_START.md](QUICK_START.md) for detailed server setup instructions.
+
 ## Security Considerations
 
 - **Never commit `.env` files** - Use environment variables or secure configuration management
 - **Rotate API keys regularly**
 - **Use minimal permissions for service accounts**
 - **Enable structured logging** for monitoring
+
+## API Endpoints
+
+When running `server.mjs`, the application exposes HTTP endpoints:
+
+- `GET /health` - Health check endpoint
+- `GET /actions` - List all available actions
+- `POST /execute/:action` - Execute a specific action
+- `POST /execute-all` - Execute all tasks
+
+Example:
+```bash
+curl http://localhost:3005/actions
+curl -X POST http://localhost:3005/execute/postDonationReminderToAll
+```
+
+## Available Actions
+
+All actions can be executed via `POST /execute/:action`. Here's a complete list:
+
+### Price Updates
+
+#### `postBitcoin1hPriceUpdateToAll`
+- **Description**: Posts Bitcoin 1-hour price update to all platforms
+- **Platforms**: BlueSky (active), Twitter/X (disabled)
+- **Aliases**: `tweetBitcoin1hPriceUpdate`, `postBlueSkyBitcoin1hPriceUpdate`
+- **Example**:
+  ```bash
+  curl -X POST http://localhost:3005/execute/postBitcoin1hPriceUpdateToAll
+  ```
+- **Returns**: Current Bitcoin price with 1-hour change percentage
+
+#### `postBitcoin24hPriceUpdateToAll`
+- **Description**: Posts Bitcoin 24-hour price update with market cap and volume data
+- **Platforms**: BlueSky (active), Twitter/X (disabled)
+- **Aliases**: `tweetBitcoin24hPriceUpdate`, `postBlueSkyBitcoin24hPriceUpdate`
+- **Example**:
+  ```bash
+  curl -X POST http://localhost:3005/execute/postBitcoin24hPriceUpdateToAll
+  ```
+- **Returns**: Current price, 24h change, market cap, and volume information
+
+### Market Sentiment
+
+#### `postFearGreedIndexToAll`
+- **Description**: Posts Fear & Greed Index with image
+- **Platforms**: BlueSky (active), Twitter/X (disabled)
+- **Aliases**: `tweetFearGreedIndexTweet`, `postBlueSkyFearGreedIndexTweet`
+- **Example**:
+  ```bash
+  curl -X POST http://localhost:3005/execute/postFearGreedIndexToAll
+  ```
+- **Returns**: Current Fear & Greed Index value and classification with chart image
+
+### Monthly Reports
+
+#### `postBitcoinMonthlyReturnsToAll`
+- **Description**: Posts Bitcoin Monthly Returns Heatmap chart
+- **Platforms**: BlueSky (active), Twitter/X (disabled)
+- **Aliases**: `tweetBitcoinMonthlyReturns`, `postBlueSkyBitcoinMonthlyReturns`
+- **Example**:
+  ```bash
+  curl -X POST http://localhost:3005/execute/postBitcoinMonthlyReturnsToAll
+  ```
+- **Returns**: Monthly returns heatmap image from Aug 2010 to previous month
+
+### Donation Reminder
+
+#### `postDonationReminderToAll`
+- **Description**: Posts donation reminder with Bitcoin on-chain and Lightning addresses
+- **Platforms**: BlueSky (active), Twitter/X (disabled)
+- **Requirements**: 
+  - `DONATION_ENABLED=true` in `.env`
+  - `DONATION_ONCHAIN_ADDRESS` and `DONATION_LIGHTNING_ADDRESS` configured
+- **Example**:
+  ```bash
+  curl -X POST http://localhost:3005/execute/postDonationReminderToAll
+  ```
+- **Returns**: Support message with donation addresses
+- **Note**: This action respects the `DONATION_ENABLED` configuration. If disabled, it will return a disabled status without posting.
+
+### Batch Operations
+
+#### `allUnifiedTasks`
+- **Description**: Executes all main tasks sequentially (price updates, Fear & Greed, monthly returns)
+- **Platforms**: BlueSky (active), Twitter/X (disabled)
+- **Example**:
+  ```bash
+  curl -X POST http://localhost:3005/execute/allUnifiedTasks
+  ```
+- **Returns**: Combined results from:
+  - `bitcoin1h`: 1-hour price update
+  - `bitcoin24h`: 24-hour price update
+  - `fearGreed`: Fear & Greed Index
+  - `monthlyReturns`: Monthly returns heatmap
+- **Note**: Does not include donation reminder. Use `postDonationReminderToAll` separately if needed.
+
+### Response Format
+
+All actions return a JSON response with the following structure:
+
+```json
+{
+  "success": true,
+  "action": "postDonationReminderToAll",
+  "result": {
+    "twitter": {
+      "success": true,
+      "data": { "id": "...", "text": "..." },
+      "error": null
+    },
+    "bluesky": {
+      "success": true,
+      "data": {
+        "uri": "at://...",
+        "cid": "...",
+        "commit": { "cid": "...", "rev": "..." },
+        "validationStatus": "valid"
+      },
+      "error": null
+    }
+  },
+  "timestamp": "2026-02-12T19:29:27.928Z"
+}
+```
+
+### Error Handling
+
+If an action fails, the response will include:
+```json
+{
+  "success": false,
+  "error": "Error message",
+  "action": "actionName",
+  "timestamp": "2026-02-12T19:29:27.928Z"
+}
+```
+
+## Scheduled Tasks
+
+The bot automatically runs scheduled tasks via node-cron:
+
+- **Every hour** (0 * * * *): Bitcoin 1h Price Update
+- **Every 12 hours** (0 */12 * * *): Bitcoin 24h Price Update
+- **Daily at 00:00 UTC** (0 0 * * *): Fear & Greed Index
+- **Last day of month at 12:00 UTC** (0 12 28-31 * *): Monthly Returns
+- **Daily at 00:05 UTC** (5 0 * * *): Donation reminder (runs every N days based on `DONATION_INTERVAL_DAYS`)
 
 ## Monitoring
 
@@ -118,7 +297,11 @@ The application includes structured logging:
 }
 ```
 
+Logs are stored in `./logs/` directory when using PM2.
+
 ## Contributing
+
+### Code Contributions
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
@@ -131,6 +314,22 @@ The application includes structured logging:
 This project uses:
 - **ESLint** for linting
 - **Prettier** for code formatting
+
+### Supporting the Project
+
+If this Bitcoin bot has been useful to you, please consider supporting the project:
+
+**On-chain Bitcoin address:**
+```
+bc1q2l76s0z0a4flktrz6xgqjfep5m0padgq4x48jf
+```
+
+**Lightning address:**
+```
+charmedcycle31@walletofsatoshi.com
+```
+
+Your support helps keep this service running and enables future improvements.
 
 ## Error Handling
 
@@ -223,6 +422,8 @@ The donation reminder feature posts a short support message to BlueSky with your
 - Added Docker support for containerized deployment
 - Improved environment variable validation
 - Enhanced security practices and documentation
+- Added donation reminder feature with configurable intervals
+- Implemented HTTP API endpoints for manual task execution
 
 ## License
 
