@@ -58,6 +58,7 @@ export const handler = async (event, context) => {
       tweetBitcoin24hPriceUpdate: () => bot.postDailyPriceUpdate(),
       postBlueSkyBitcoin24hPriceUpdate: () => bot.postDailyPriceUpdate(),
       postBitcoin24hPriceUpdateToAll: () => bot.postDailyPriceUpdate(),
+      postDonationReminderToAll: () => bot.postDonationReminder(),
       allUnifiedTasks: async () => {
         const results = {};
         try {

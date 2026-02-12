@@ -33,6 +33,7 @@ const actionMap = {
   tweetBitcoin24hPriceUpdate: () => bot.postDailyPriceUpdate(),
   postBlueSkyBitcoin24hPriceUpdate: () => bot.postDailyPriceUpdate(),
   postBitcoin24hPriceUpdateToAll: () => bot.postDailyPriceUpdate(),
+  postDonationReminderToAll: () => bot.postDonationReminder(),
   allUnifiedTasks: async () => {
     const results = {};
     try {
@@ -137,6 +138,44 @@ function setupCronJobs() {
       timezone: 'UTC',
     }
   );
+
+  // Daily check for donation reminder (runs once per day, respects interval in days)
+  cron.schedule(
+    '5 0 * * *',
+    async () => {
+      try {
+        const { donations } = config;
+
+        if (!donations.enabled) {
+          logger.info(
+            '🙏 Donation reminder cron is disabled via DONATION_ENABLED. Skipping for today.'
+          );
+          return;
+        }
+
+        const now = new Date();
+        const daysSinceEpoch = Math.floor(now.getTime() / (1000 * 60 * 60 * 24));
+        const interval = donations.intervalDays || 7;
+
+        if (daysSinceEpoch % interval !== 0) {
+          logger.info(
+            `🙏 Not a scheduled donation reminder day (interval=${interval} days, daysSinceEpoch=${daysSinceEpoch}). Skipping.`
+          );
+          return;
+        }
+
+        logger.info('🙏 Cron job triggered: donation reminder');
+        await bot.postDonationReminder();
+        logger.info('✅ Donation reminder completed successfully');
+      } catch (error) {
+        logger.error('❌ Donation reminder cron job failed', error);
+      }
+    },
+    {
+      scheduled: true,
+      timezone: 'UTC',
+    }
+  );
   cron.schedule(
     '0 */12 * * *',
     async () => {
@@ -198,6 +237,9 @@ function setupCronJobs() {
   logger.info('  • Every 12h (0 */12 * * *): Bitcoin 24h Price Update');
   logger.info('  • Daily at 00:00 (0 0 * * *): Fear & Greed Index');
   logger.info('  • Last day of month at 12:00 (0 12 28-31 * *): Monthly Returns');
+  logger.info(
+    '  • Daily at 00:05 (5 0 * * *): Donation reminder (runs every N days based on DONATION_INTERVAL_DAYS)'
+  );
   logger.info('  • All times in UTC timezone');
 }
 process.on('SIGTERM', () => {

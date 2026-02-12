@@ -16,6 +16,7 @@ A robust Node.js application that automatically posts Bitcoin price updates, mar
 - **Structured Logging**: JSON-formatted logs for better monitoring
 - **Modern Architecture**: Clean separation of concerns and modular design
 - **Scheduled Tasks**: Hourly, 12-hourly, daily, and monthly automated posts via node-cron
+- **Donation Reminder**: Optional recurring donation post to BlueSky using your Bitcoin and Lightning addresses
 
 ## Architecture
 
@@ -173,9 +174,36 @@ The application includes comprehensive error handling:
 | `FEAR_GREED_INDEX_IMAGE_URL` | Yes | Fear & Greed Index image URL |
 | `FEAR_GREED_INDEX_IMAGE_PATH` | Yes | Local path to store Fear & Greed image |
 | `BITCOIN_MONTHLY_RETURNS_IMAGE_PATH` | Yes | Local path to store monthly returns chart |
+| `DONATION_ONCHAIN_ADDRESS` | Yes | Bitcoin on-chain address used in the donation reminder message |
+| `DONATION_LIGHTNING_ADDRESS` | Yes | Lightning address used in the donation reminder message |
+| `DONATION_ENABLED` | No | Enables/disables the periodic donation reminder (`true` / `false`) |
+| `DONATION_INTERVAL_DAYS` | No | Interval in days between donation reminders (default: 7) |
 | `LOG_LEVEL` | No | Logging level (DEBUG, INFO, WARN, ERROR) |
 
 See `.env.exemple` for complete configuration options.
+
+### Donation Reminder Behavior
+
+The donation reminder feature posts a short support message to BlueSky with your on-chain and Lightning addresses.
+
+- **Platforms**:
+  - BlueSky: **active** (posts using `postBlueSkyWithoutMedia`)
+  - Twitter/X: **disabled** (stub only, no real tweet is sent)
+- **Enabling**:
+  - Set `DONATION_ONCHAIN_ADDRESS` and `DONATION_LIGHTNING_ADDRESS` in your `.env`
+  - Set `DONATION_ENABLED=true`
+- **Frequency**:
+  - Internal cron job runs daily at 00:05 UTC
+  - A reminder is only posted when `daysSinceEpoch % DONATION_INTERVAL_DAYS === 0`
+  - Change `DONATION_INTERVAL_DAYS` to control how often the reminder runs (e.g., `7` for every 7 days)
+- **Message format** (example):
+
+  ```text
+  Support this Bitcoin bot:
+
+  On-chain: YOUR_ONCHAIN_ADDRESS
+  Lightning: YOUR_LIGHTNING_ADDRESS
+  ```
 
 ## Performance
 

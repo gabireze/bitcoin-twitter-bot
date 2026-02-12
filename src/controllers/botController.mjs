@@ -5,6 +5,7 @@ import {
   createDailyPriceUpdate,
   createHourlyPriceUpdate,
 } from '../messageTemplates/priceMessages.mjs';
+import { createDonationReminderMessage } from '../messageTemplates/donationMessages.mjs';
 import { captureMonthlyReturnsChart } from '../processors/screenshotProcessor.mjs';
 import { fetchPriceData } from '../services/bitcoinDataService.mjs';
 import { postBlueSkyWithMedia, postBlueSkyWithoutMedia } from '../services/blueskyService.mjs';
@@ -222,6 +223,64 @@ export class BotController {
     }
   }
 
+  async postDonationReminder() {
+    try {
+      const { donations } = config;
+
+      if (!donations.enabled) {
+        logger.info('Donation reminder is disabled via configuration. Skipping post.');
+        return {
+          twitter: { success: false, data: null, error: 'disabled' },
+          bluesky: { success: false, data: null, error: 'disabled' },
+        };
+      }
+
+      if (!donations.onchainAddress || !donations.lightningAddress) {
+        throw new ValidationError(
+          'Donation addresses are not properly configured. Please set DONATION_ONCHAIN_ADDRESS and DONATION_LIGHTNING_ADDRESS in the environment.'
+        );
+      }
+
+      logger.info('Starting donation reminder post to ALL platforms (optimized)');
+
+      const summaryMessage = createDonationReminderMessage(
+        donations.onchainAddress,
+        donations.lightningAddress,
+        donations.intervalDays
+      );
+
+      const [twitterResponse, blueSkyResponse] = await Promise.allSettled([
+        // Twitter remains disabled: stubbed response only
+        Promise.resolve({ id: 'disabled_' + Date.now(), text: summaryMessage }),
+        postBlueSkyWithoutMedia(summaryMessage),
+      ]);
+
+      const results = {
+        twitter: {
+          success: twitterResponse.status === 'fulfilled',
+          data: twitterResponse.status === 'fulfilled' ? twitterResponse.value : null,
+          error: twitterResponse.status === 'rejected' ? twitterResponse.reason : null,
+        },
+        bluesky: {
+          success: blueSkyResponse.status === 'fulfilled',
+          data: blueSkyResponse.status === 'fulfilled' ? blueSkyResponse.value : null,
+          error: blueSkyResponse.status === 'rejected' ? blueSkyResponse.reason : null,
+        },
+      };
+
+      logger.info('Donation reminder posted', {
+        twitter: results.twitter.success ? 'SUCCESS' : 'FAILED',
+        bluesky: results.bluesky.success ? 'SUCCESS' : 'FAILED',
+        message: summaryMessage,
+      });
+
+      return results;
+    } catch (error) {
+      logger.error('Error in postDonationReminder', error);
+      throw error;
+    }
+  }
+
   async runAllTasks() {
     const results = {
       unified: {},
@@ -244,6 +303,10 @@ export class BotController {
       {
         name: 'bitcoinMonthlyReturns',
         method: () => this.postMonthlyReturns(),
+      },
+      {
+        name: 'donationReminder',
+        method: () => this.postDonationReminder(),
       },
     ];
 
