@@ -9,12 +9,12 @@ module.exports = {
       max_memory_restart: '1G',
       env: {
         NODE_ENV: 'production',
-        PORT: 3001,
+        PORT: 3005,
         HOST: '0.0.0.0', // Todas as interfaces para compatibilidade com nginx
       },
       env_production: {
         NODE_ENV: 'production',
-        PORT: 3001,
+        PORT: 3005,
         HOST: '0.0.0.0', // Todas as interfaces para compatibilidade com nginx
       },
 
