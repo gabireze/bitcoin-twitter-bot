@@ -1,9 +1,10 @@
-import express from 'express';
 import * as dotenv from 'dotenv';
+import express from 'express';
 import cron from 'node-cron';
+import { config } from './src/config/config.mjs';
 import { BotController } from './src/controllers/botController.mjs';
-import { logger } from './src/utils/logger.mjs';
 import { AppError } from './src/utils/errors.mjs';
+import { logger } from './src/utils/logger.mjs';
 
 dotenv.config();
 
