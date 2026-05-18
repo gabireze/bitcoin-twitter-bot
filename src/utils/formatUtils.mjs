@@ -5,11 +5,13 @@ export const calculatePercentageChange = (currentValue, previousValue) => {
   return ((currentValue - previousValue) / previousValue) * 100;
 };
 
-export const formatCurrency = value => {
+export const formatCurrency = (value, currency = 'USD') => {
   if (typeof value !== 'number' || isNaN(value)) {
     throw new Error('Invalid number for currency formatting');
   }
-  return value.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+
+  const normalizedCurrency = String(currency || 'USD').toUpperCase();
+  return value.toLocaleString('en-US', { style: 'currency', currency: normalizedCurrency });
 };
 
 export const formatDate = date => {
