@@ -10,7 +10,8 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const HOST = process.env.HOST || '0.0.0.0'; // Escutar em todas as interfaces para compatibilidade com nginx
+// O bot agenda e publica internamente; não precisa de exposição pública.
+const HOST = process.env.HOST || '127.0.0.1';
 app.use(express.json());
 app.use('/images', express.static('./public/images'));
 app.get('/health', (req, res) => {
@@ -259,10 +260,10 @@ process.on('SIGINT', () => {
   });
 });
 const server = app.listen(PORT, HOST, () => {
-  logger.info(`Bitcoin Bot Server started on ${HOST}:${PORT} (all interfaces)`);
+  logger.info(`Bitcoin Bot Server started on ${HOST}:${PORT}`);
   logger.info(`Health check: http://localhost:${PORT}/health`);
   logger.info(`Available actions: http://localhost:${PORT}/actions`);
-  logger.info('🔒 Server accessible via nginx proxy (firewalled externally)');
+  logger.info('🔒 Server restricted to the local interface');
   setupCronJobs();
 });
 
