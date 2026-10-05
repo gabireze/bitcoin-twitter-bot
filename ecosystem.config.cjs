@@ -10,18 +10,18 @@ module.exports = {
       env: {
         NODE_ENV: 'production',
         PORT: 3005,
-        HOST: '0.0.0.0', // Todas as interfaces para compatibilidade com nginx
+        HOST: '127.0.0.1', // Serviço interno; não depende de domínio público
       },
       env_production: {
         NODE_ENV: 'production',
         PORT: 3005,
-        HOST: '0.0.0.0', // Todas as interfaces para compatibilidade com nginx
+        HOST: '127.0.0.1', // Serviço interno; não depende de domínio público
       },
 
       // Logs organizados
-      log_file: './logs/combined.log',
-      out_file: './logs/out.log',
-      error_file: './logs/error.log',
+      log_file: '/root/bitcoin-twitter-bot/logs/combined.log',
+      out_file: '/root/bitcoin-twitter-bot/logs/out.log',
+      error_file: '/root/bitcoin-twitter-bot/logs/error.log',
       log_type: 'json',
       log_date_format: 'YYYY-MM-DD HH:mm:ss Z',
 

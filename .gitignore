@@ -88,3 +88,8 @@ typings/
 
 # DynamoDB Local files
 .dynamodb/
+
+# Generated runtime media and local operational leftovers
+/public/images/
+/test-image.png
+*.bak-codex-*

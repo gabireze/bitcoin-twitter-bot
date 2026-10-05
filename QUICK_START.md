@@ -41,7 +41,7 @@ Optional variables:
 - `DONATION_ENABLED`: Enable donation reminder (`true` / `false`, default: `false`)
 - `DONATION_INTERVAL_DAYS`: Days between donation reminders (default: 7)
 - `PORT`: Server port (default: 3000)
-- `HOST`: Server host (default: 0.0.0.0)
+- `HOST`: Server host (default: 127.0.0.1; keep it local unless there is an explicit need)
 - `LOG_LEVEL`: Logging level (DEBUG, INFO, WARN, ERROR)
 
 ### Step 3: Install Dependencies
@@ -204,8 +204,8 @@ pm2 env bitcoin-bot
 
 ## 🔒 Security
 
-- ✅ Server listens on all interfaces (0.0.0.0) but should be behind a firewall/proxy
-- ✅ Port not exposed externally (use nginx reverse proxy)
+- ✅ Server listens only on the loopback interface (`127.0.0.1`)
+- ✅ Scheduled posts do not depend on a public domain or reverse proxy
 - ✅ Credentials stored in `.env` file (never commit to git)
 - ✅ Environment variables validated on startup
 - ✅ Structured logging for monitoring
@@ -255,15 +255,7 @@ If you need to change the server port:
    pm2 restart bitcoin-bot --update-env
    ```
 
-### Nginx Reverse Proxy Setup
+### Local administration
 
-Example nginx configuration:
-
-```nginx
-location /api/bitcoin/ {
-    proxy_pass http://127.0.0.1:3005/;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header Host $host;
-    proxy_set_header X-Forwarded-Proto $scheme;
-}
-```
+The HTTP server exists only for local health checks and manual actions. Keep it bound to
+`127.0.0.1` and access it through SSH when operational intervention is necessary.

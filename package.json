@@ -27,6 +27,7 @@
     "pm2:restart": "pm2 restart bitcoin-bot",
     "pm2:logs": "pm2 logs bitcoin-bot",
     "pm2:status": "pm2 status",
+    "test": "node --test",
     "lint": "eslint \"src/**/*.mjs\"",
     "lint:fix": "eslint \"src/**/*.mjs\" --fix",
     "format": "prettier --write src/"

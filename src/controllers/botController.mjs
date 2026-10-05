@@ -213,7 +213,7 @@ export class BotController {
       logger.info('Bitcoin Monthly Returns posted to both platforms', {
         twitter: results.twitter.success ? 'SUCCESS' : 'FAILED',
         bluesky: results.bluesky.success ? 'SUCCESS' : 'FAILED',
-        imageUrl: imageResult.publicUrl,
+        imagePath: imageResult.localPath,
       });
 
       return results;

@@ -2,7 +2,6 @@ import fs from 'fs/promises';
 import path from 'path';
 import { logger } from '../utils/logger.mjs';
 const PUBLIC_DIR = './public/images';
-const BASE_URL = process.env.BASE_URL || 'https://gabireze.cloud/api/bitcoin';
 const ensureDirectoryExists = async () => {
   try {
     await fs.mkdir(PUBLIC_DIR, { recursive: true });
@@ -23,17 +22,15 @@ export const saveImageLocally = async (buffer, filename) => {
 
     const filePath = path.join(PUBLIC_DIR, finalFilename);
     await fs.writeFile(filePath, buffer);
-    const publicUrl = `${BASE_URL}/${finalFilename}`;
-
     logger.info('Image saved locally', {
       filename: finalFilename,
       size: buffer.length,
-      url: publicUrl,
+      path: filePath,
     });
 
     return {
       localPath: filePath,
-      publicUrl: publicUrl,
+      filename: finalFilename,
     };
   } catch (error) {
     logger.error('Failed to save image locally', error);
