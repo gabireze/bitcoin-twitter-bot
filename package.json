@@ -9,7 +9,7 @@
     "dotenv": "^17.2.4",
     "express": "^5.2.1",
     "node-cron": "^4.2.1",
-    "puppeteer": "^24.37.2",
+    "puppeteer": "^25.12.0",
     "twitter-api-v2": "^1.29.0"
   },
   "devDependencies": {
